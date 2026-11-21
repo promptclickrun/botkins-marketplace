@@ -19,7 +19,7 @@ In Botkins, open **Settings → Marketplace → Plugins**. Until the built-in en
 3. Add an entry to `.github/plugin/marketplace.json`. Besides the standard fields, set:
    - `category`: `health`, `productivity`, `finance`, `home`, `dev`, `media` or `other`.
    - `auth`: `none`, `api-key` or `oauth`.
-4. Run `node scripts/validate.mjs && node --test test/` and open a PR.
+4. Run `node scripts/validate.mjs && node --test "test/*.test.mjs"` and open a PR.
 
 Local MCP servers should run on plain Node.js with no `npm install`. Botkins copies the plugin folder as-is.
 
