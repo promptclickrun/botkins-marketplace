@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { checkAgents, checkTemplateText } from "../scripts/agents-check.mjs";
@@ -22,4 +24,20 @@ test("a bad template is refused", () => {
   assert.deepEqual(checkTemplateText("{"), ["file is not valid JSON"]);
   const entry = { name: "x", source: "./agents/../x.json", category: "other", version: "1.0.0" };
   assert.match(checkAgents(ROOT, [entry]).errors.join("\n"), /source must be/);
+});
+
+test("agents can share a head when their palettes differ", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "botkins-looks-"));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  mkdirSync(join(root, "agents"));
+  const entries = ["first", "second"].map(name => ({
+    name, source: `./agents/${name}.json`, category: "other", version: "1.0.0"
+  }));
+  const save = (entry, palette) => writeFileSync(join(root, entry.source),
+    JSON.stringify({ ...good, look: { ...good.look, palette } }));
+  save(entries[0], "fern");
+  save(entries[1], "honey");
+  assert.deepEqual(checkAgents(root, entries).errors, []);
+  save(entries[1], "fern");
+  assert.match(checkAgents(root, entries).errors.join("\n"), /also used by first/);
 });

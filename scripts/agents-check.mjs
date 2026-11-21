@@ -48,7 +48,7 @@ export function checkTemplateText(raw) {
 export function checkAgents(root, entries) {
   const errors = [];
   const names = new Set();
-  const heads = new Map();
+  const looks = new Map();
   const listed = new Set();
   if (entries !== undefined && !Array.isArray(entries)) return { errors: ["agents must be an array"], names };
   for (const entry of entries || []) {
@@ -77,10 +77,11 @@ export function checkAgents(root, entries) {
     const raw = readFileSync(file, "utf8");
     for (const problem of checkTemplateText(raw)) fail(`${source}: ${problem}`);
     try {
-      const head = JSON.parse(raw).look?.head;
-      if (head) {
-        if (heads.has(head)) fail(`look.head "${head}" is also used by ${heads.get(head)}`);
-        heads.set(head, entry.name);
+      const { head, palette } = JSON.parse(raw).look ?? {};
+      if (head && palette) {
+        const look = `${head}/${palette}`;
+        if (looks.has(look)) fail(`look "${look}" is also used by ${looks.get(look)}`);
+        looks.set(look, entry.name);
       }
     } catch {}
   }
