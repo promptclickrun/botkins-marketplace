@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { classify, handle, scrub } from "../plugins/botkins-hill-climber/hooks/hill.mjs";
+import { botAuthored, classify, handle, normalize, scrub } from "../plugins/botkins-hill-climber/hooks/hill.mjs";
 import { decide, digest, due, ledger, log, markReviewed, pending, reviewerModel, score } from "../plugins/botkins-hill-climber/skills/hill-climb-retro/scripts/hill.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
@@ -17,6 +17,65 @@ test("classify catches corrections and preferences, ignores ordinary requests", 
   for (const text of ["No, I meant the Tuesday meeting", "I told you to use Central time", "That's not what I asked for", "You forgot the attachment again"]) assert.equal(classify(text), "correction", text);
   for (const text of ["From now on give times in Central", "Next time check the calendar first", "I prefer short answers"]) assert.equal(classify(text), "preference", text);
   for (const text of ["Can you check my calendar for tomorrow?", "Nobody knows the answer", "Notes on the sprint", "Is this wrong-headed?", ""]) assert.equal(classify(text), null, text);
+});
+
+test("phone punctuation and invisible characters don't hide corrections", () => {
+  assert.equal(normalize("Don\u2019t \u201Csay\u201D that\u2014ever\u00A0again\u200B"), "don't \"say\" that-ever again");
+  assert.equal(normalize("\uFF2E\uFF4F, wrong"), "no, wrong");
+  const caught = [
+    "Here\u2019s a correction: don\u2019t say things like \u201CThe fix, about 30 minutes:\u201D",
+    "You didn\u2019t check the calendar",
+    "That\u2019s not what I asked",
+    "I\u2019d rather you skip the summary",
+    "Correction: the meeting is Tuesday",
+    "Nope\u2014the other lamp",
+    "No, that\u2019s the wrong file",
+    "As I said, Central time",
+    "Please don\u2019t guess the time",
+    "Why do you keep adding em-dashes?",
+    "I\u00A0told\u00A0you this already",
+    "you\u200B forgot the attachment",
+  ];
+  for (const text of caught) assert.ok(classify(text), text);
+  const ignored = [
+    "No problem, thanks!",
+    "No worries",
+    "Actually, can you also check tomorrow?",
+    "Why do you think the build failed?",
+    "I don\u2019t use Gmail for work",
+    "Stop the music in the office",
+    "Can you never-mind that and check the weather",
+    "Did you see the news?",
+  ];
+  for (const text of ignored) assert.equal(classify(text), null, text);
+});
+
+test("bot-written prompts are never counted as the person's words", () => {
+  assert.equal(botAuthored({ chatId: "c1", botId: "b2", sessionId: "c1-team-b2", prompt: "No, I told you" }), "teammate");
+  assert.equal(botAuthored({ sessionId: "c1-team-5bc75d27-96ba-4df2-95e3-7c80aa242237", prompt: "x" }), "teammate");
+  assert.equal(botAuthored({ sessionId: "s", prompt: "Message from Alfie (Chief of Staff):\nFrom now on stress-test it" }), "teammate");
+  assert.equal(botAuthored({ sessionId: "c1", chatId: "c1", prompt: "From now on use Central" }), null);
+  assert.equal(botAuthored({ sessionId: "c9" }, "routine"), "routine");
+  assert.equal(botAuthored({ sessionId: "c9" }, "panel"), "panel");
+
+  const dir = tmp();
+  const root = tmp();
+  writeFileSync(join(root, "workspace.json"), JSON.stringify({ chats: [{ id: "r1", schedules: [{ routine: true }] }, { id: "p1", panelId: "x" }, { id: "u1" }] }));
+  process.env.BOTKINS_DIR = root;
+  try {
+    const prompt = "No, I told you. From now on use Central.";
+    handle("userPromptSubmitted", { botId: "b2", chatId: "c1", sessionId: "c1-team-b2", prompt: "Message from Alfie (CoS):\n" + prompt }, dir, { now: 1 });
+    handle("userPromptSubmitted", { botId: "b2", chatId: "r1", sessionId: "r1", prompt }, dir, { now: 2 });
+    handle("userPromptSubmitted", { botId: "b2", chatId: "p1", sessionId: "p1", prompt }, dir, { now: 3 });
+    assert.equal(existsSync(join(dir, "signals.jsonl")), false);
+    assert.equal(JSON.parse(readFileSync(join(dir, "state.json"), "utf8")).turns, undefined);
+    handle("userPromptSubmitted", { botId: "b2", chatId: "u1", sessionId: "u1", prompt }, dir, { now: 4 });
+    assert.equal(signals(dir).length, 1);
+    handle("postToolUseFailure", { botId: "b2", chatId: "c1", sessionId: "c1-team-b2", toolName: "gmail", error: "401" }, dir, { now: 5 });
+    assert.equal(signals(dir).length, 2, "a teammate's own tool failures still count against it");
+  } finally {
+    delete process.env.BOTKINS_DIR;
+  }
 });
 
 test("scrub removes credentials before they reach disk", () => {
@@ -129,6 +188,35 @@ test("score reverts a change when its watched problem keeps happening", () => {
   assert.equal(r.id, c.id);
   assert.equal(r.verdict, "revert");
   assert.throws(() => decide(dir, "nope", "kept"), /no change/);
+});
+
+test("own changes are scored per bot; shared changes on every bot, reverted if any got worse", () => {
+  const dir = tmp();
+  const day = (bot, from, days, turns, bad) => {
+    for (let d = 0; d < days; d++)
+      for (let i = 0; i < turns; i++)
+        handle("userPromptSubmitted", { botId: bot, chatId: `${bot}${d}-${i}`, prompt: i < bad ? "No, I told you Central time" : "Weather?" }, dir, { now: T0 + (from + d) * DAY + i * 1000, nudges: false });
+  };
+  day("a", 0, 10, 10, 2);
+  day("d", 0, 10, 10, 1);
+  const own = log(dir, { bot: "a", target: "USER.md", change: "Give times in Central", why: "x", watch: "central" }, T0 + 10 * DAY);
+  const shared = log(dir, { bot: "a", target: "skill:calendar", change: "Always state the zone", why: "x", watch: "central" }, T0 + 10 * DAY);
+  assert.equal(own.scope, "own");
+  assert.equal(shared.scope, "shared");
+  day("a", 11, 10, 10, 0);
+  day("d", 11, 10, 10, 3);
+
+  const forA = Object.fromEntries(score(dir, "a", { now: T0 + 22 * DAY }).map((r) => [r.id, r]));
+  assert.equal(forA[own.id].verdict, "keep", "Dolly's worse week doesn't touch Alfie's own change");
+  assert.equal(forA[shared.id].verdict, "revert");
+  assert.match(forA[shared.id].reason, /worse for bot d/);
+  assert.equal(forA[shared.id].perBot.a.verdict, "keep");
+
+  const forD = score(dir, "d", { now: T0 + 22 * DAY });
+  assert.deepEqual(forD.map((r) => r.id), [shared.id], "Dolly sees the shared change, not Alfie's own");
+  assert.equal(forD[0].madeByAnotherBot, true);
+  assert.equal(pending(dir, "d").corrections.every((c) => c.text.includes("Central")), true);
+  assert.equal(ledger(dir, "d").length, 1);
 });
 
 test("due gates scheduled retros so quiet weeks cost nothing", () => {
