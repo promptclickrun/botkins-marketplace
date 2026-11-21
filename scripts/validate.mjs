@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-// Checks that every marketplace entry points at a folder with a valid plugin manifest.
+// Checks that every plugin entry points at a folder with a valid plugin manifest,
+// and that every agent template entry points at a valid template file.
 import { existsSync, readFileSync } from "node:fs";
 import { join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkAgents } from "./agents-check.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const market = JSON.parse(readFileSync(join(ROOT, ".github/plugin/marketplace.json"), "utf8"));
@@ -36,8 +38,11 @@ for (const entry of market.plugins || []) {
   }
 }
 
+const agents = checkAgents(ROOT, market.agents);
+errors.push(...agents.errors);
+
 if (errors.length) {
   console.error(errors.map((e) => `- ${e}`).join("\n"));
   process.exit(1);
 }
-console.log(`OK: ${names.size} plugin(s)`);
+console.log(`OK: ${names.size} plugin(s), ${agents.names.size} agent template(s)`);
