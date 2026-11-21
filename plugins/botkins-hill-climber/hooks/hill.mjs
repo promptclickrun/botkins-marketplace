@@ -9,6 +9,7 @@ const SIGNALS_MAX_BYTES = 2_000_000;
 const CHAT_NUDGE_MS = 30 * 60_000;
 const BOT_NUDGE_MS = 24 * 60 * 60_000;
 const RETRO_THRESHOLD = 5;
+const TURN_DAYS_KEPT = 180;
 
 // Tuned for precision over recall: a missed lesson costs little, a nudge on every message is noise.
 const CORRECTION = /^(no|nope|wrong|stop|actually|ugh)\b[\s,.!]|\b(that'?s|this is) (not right|wrong|incorrect)\b|\bi (told|asked) you\b|\bnot what i (asked|meant|wanted|said)\b|\b(already|just) (told|said|asked)\b|\bwhy (did|would) you\b|\byou (forgot|missed|ignored|keep|didn'?t)\b|\bdon'?t (ever|do that)\b|\bstop (doing|using|saying|adding)\b/i;
@@ -74,16 +75,27 @@ export function handle(evt, input, dir, { now = Date.now(), nudges = true } = {}
   let context;
 
   if (evt === "userPromptSubmitted") {
+    // Turn counts per bot per day are the denominator for scoring. No prompt text is kept here.
+    if (bot) {
+      const day = new Date(now).toISOString().slice(0, 10);
+      const turns = (state.turns ??= {})[bot] ??= {};
+      turns[day] = (turns[day] ?? 0) + 1;
+      const cutoff = new Date(now - TURN_DAYS_KEPT * 86_400_000).toISOString().slice(0, 10);
+      for (const d of Object.keys(turns)) if (d < cutoff) delete turns[d];
+    }
     const kind = classify(input.prompt);
-    if (!kind) return null;
+    if (!kind) {
+      writeState(dir, state);
+      return null;
+    }
     append(dir, { ...base, kind, text: scrub(clip(input.prompt, 500)) });
     state.chat ??= {};
     if (nudges && (state.chat[chat] === undefined || now - state.chat[chat] > CHAT_NUDGE_MS)) {
       state.chat[chat] = now;
       context =
         kind === "preference"
-          ? "[Hill Climber] The person just stated a standing preference. Do the request first, then save it where it belongs (hill-climb-retro skill, quick capture)."
-          : "[Hill Climber] This reads like a correction. Fix the answer first. If the mistake could recur in another chat, capture the lesson with the hill-climb-retro skill (quick capture) before you finish.";
+          ? "[Hill Climber] Standing preference stated. After the request, save it (hill-climb-retro, quick capture)."
+          : "[Hill Climber] Possible correction. Fix it first; if it could recur, quick-capture the lesson (hill-climb-retro).";
     }
   } else if (evt === "postToolUseFailure") {
     append(dir, { ...base, kind: "tool_failure", tool: clip(input.toolName, 200), error: scrub(clip(input.error, 400)) });
@@ -98,7 +110,7 @@ export function handle(evt, input, dir, { now = Date.now(), nudges = true } = {}
       const { count, oldest } = pendingFor(dir, bot, state.reviewed[bot] ?? 0);
       if (count >= RETRO_THRESHOLD) {
         state.bot[bot] = now;
-        context = `[Hill Climber] ${count} unreviewed friction signals since ${new Date(oldest).toISOString().slice(0, 10)}. Don't interrupt the person for this. At a natural pause, or when they ask how you can improve, run the hill-climb-retro skill.`;
+        context = `[Hill Climber] ${count} unreviewed signals since ${new Date(oldest).toISOString().slice(0, 10)}. Don't interrupt; at a natural pause run hill-climb-retro.`;
       }
     }
   } else return null;

@@ -15,7 +15,7 @@ Bots that get better with use. Hill Climber notices when you correct a bot, stat
 
 | Event | Records | May add context |
 | --- | --- | --- |
-| `userPromptSubmitted` | Only messages that read as a correction or a standing preference (first 500 chars, credentials scrubbed) | Once per chat per 30 minutes: "fix it first, then capture the lesson" |
+| `userPromptSubmitted` | A per-day turn count, plus the text of messages that read as a correction or standing preference (first 500 chars, credentials scrubbed) | Once per chat per 30 minutes: "fix it first, then capture the lesson" |
 | `postToolUseFailure`, `errorOccurred` | Tool name and the first 400 chars of the error | No |
 | `sessionEnd` | End reason | No |
 | `sessionStart` | Nothing | Once per bot per day, when 5+ signals are unreviewed: "run a retro at a natural pause" |
@@ -23,6 +23,26 @@ Bots that get better with use. Hill Climber notices when you correct a bot, stat
 Each hook is one short Node process with a 5 second limit. Everything goes to `signals.jsonl`, `state.json` and `ledger.jsonl` in the plugin's own data folder (`<Botkins>/.botkins-plugin-data/botkins-hill-climber-*`, mode 600). Set **Nudges** to `off` to keep recording without any hints.
 
 Why hooks at all: a bot can't notice its own repeated mistakes across chats without some record of them, and the person shouldn't have to remember to ask. The hooks are kept to passive logging plus two rate-limited hints.
+
+## How it climbs
+
+Each change is logged with a `--watch` regex (the signals it should stop) and an `--undo` note. `hill.mjs score` compares friction per 100 user turns in the 14 days before a change with the days after it:
+
+| Verdict | When |
+| --- | --- |
+| `wait` | Fewer than 30 user turns since the change |
+| `keep` | The watched problem dropped or stopped, or overall friction held or fell |
+| `revert` | The watched problem didn't drop, or overall friction rose over 25% |
+
+The retro scores open changes first, reverts the losers with their undo note, and records verdicts. Nothing new goes on a target while a change there is still waiting, so each change gets a clean read. The hook counts turns per bot per day (no text) to give the score its denominator.
+
+## Model spend
+
+- Counting, scoring and `due` are plain Node arithmetic with no model calls.
+- The hooks never call a model. Their hints are one short line, and rare.
+- The `hill-climber` agent asks for small models (`claude-haiku-5.5`, `gpt-5.4-mini`, `gpt-5-mini`, `claude-haiku-4.5`) at low reasoning effort, so big retros don't run on the chat's main model. The policy is `preferred`, so it falls back to the session model if none are available.
+- A retro reads at most three trimmed digests itself and makes at most three changes.
+- An optional weekly routine runs `due` first, so a quiet week costs one short turn.
 
 ## Guardrails in the skills
 

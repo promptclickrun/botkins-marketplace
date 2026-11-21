@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { classify, handle, scrub } from "../plugins/botkins-hill-climber/hooks/hill.mjs";
-import { digest, ledger, log, markReviewed, pending } from "../plugins/botkins-hill-climber/skills/hill-climb-retro/scripts/hill.mjs";
+import { decide, digest, due, ledger, log, markReviewed, pending, score } from "../plugins/botkins-hill-climber/skills/hill-climb-retro/scripts/hill.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const HOOK = join(ROOT, "plugins/botkins-hill-climber/hooks/hill.mjs");
@@ -87,6 +87,56 @@ test("ledger records changes per bot", () => {
   log(dir, { bot: "b1", target: "AGENTS.md", change: "Give times in Central", why: "said twice" }, 0);
   log(dir, { bot: "b2", target: "memory", change: "x", why: "y" }, 1);
   assert.deepEqual(ledger(dir, "b1").map((r) => r.change), ["Give times in Central"]);
+});
+
+const DAY = 86_400_000;
+const T0 = Date.UTC(2026, 10, 1, 12);
+// Simulates a bot's traffic: `turns` prompts per day, of which `bad` are a given correction.
+function traffic(dir, fromDay, days, turns, bad, prompt = "No, I told you Central time") {
+  for (let d = 0; d < days; d++) {
+    for (let i = 0; i < turns; i++) {
+      const text = i < bad ? prompt : "What's on my calendar?";
+      handle("userPromptSubmitted", { botId: "b1", chatId: `c${d}-${i}`, prompt: text }, dir, { now: T0 + (fromDay + d) * DAY + i * 1000, nudges: false });
+    }
+  }
+}
+
+test("score waits for enough turns, then keeps changes that lowered friction", () => {
+  const dir = tmp();
+  traffic(dir, 0, 10, 10, 2);
+  const good = log(dir, { bot: "b1", target: "USER.md", change: "Give times in Central", why: "x", watch: "central", undo: "delete line" }, T0 + 10 * DAY);
+  const bad = log(dir, { bot: "b1", target: "AGENTS.md", change: "Something unrelated", why: "x" }, T0 + 10 * DAY);
+  assert.equal(score(dir, "b1", { now: T0 + 11 * DAY })[0].verdict, "wait");
+  traffic(dir, 11, 10, 10, 0);
+  handle("postToolUseFailure", { botId: "b1", toolName: "gmail", error: "401" }, dir, { now: T0 + 12 * DAY });
+  const s = score(dir, "b1", { now: T0 + 22 * DAY });
+  const byId = Object.fromEntries(s.map((r) => [r.id, r]));
+  assert.equal(byId[good.id].verdict, "keep");
+  assert.equal(byId[good.id].before.watchedRate, 20);
+  assert.equal(byId[good.id].after.watchedRate, 0);
+  assert.equal(byId[bad.id].verdict, "keep");
+  decide(dir, good.id, "kept");
+  assert.deepEqual(score(dir, "b1", { now: T0 + 22 * DAY }).map((r) => r.id), [bad.id]);
+  assert.equal(ledger(dir, "b1").find((r) => r.id === good.id).verdict, "kept");
+});
+
+test("score reverts a change when its watched problem keeps happening", () => {
+  const dir = tmp();
+  traffic(dir, 0, 10, 10, 1);
+  const c = log(dir, { bot: "b1", target: "AGENTS.md", change: "Check time zones", why: "x", watch: "central" }, T0 + 10 * DAY);
+  traffic(dir, 11, 10, 10, 2);
+  const [r] = score(dir, "b1", { now: T0 + 22 * DAY });
+  assert.equal(r.id, c.id);
+  assert.equal(r.verdict, "revert");
+  assert.throws(() => decide(dir, "nope", "kept"), /no change/);
+});
+
+test("due gates scheduled retros so quiet weeks cost nothing", () => {
+  const dir = tmp();
+  traffic(dir, 0, 3, 5, 0);
+  assert.equal(due(dir, "b1", { now: T0 + 3 * DAY }).due, false);
+  traffic(dir, 3, 1, 5, 5);
+  assert.equal(due(dir, "b1", { now: T0 + 4 * DAY }).due, true);
 });
 
 test("hook command reads stdin and prints one JSON line", () => {

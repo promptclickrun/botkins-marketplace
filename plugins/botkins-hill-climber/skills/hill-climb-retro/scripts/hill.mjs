@@ -98,13 +98,89 @@ export function digest(root, sessionId, max = 12_000) {
 }
 
 export function log(dir, entry, now = Date.now()) {
-  const record = { at: new Date(now).toISOString(), ...entry };
+  const id = `c${now.toString(36)}${Math.floor(Math.random() * 1296).toString(36).padStart(2, "0")}`;
+  const record = { id, at: new Date(now).toISOString(), ...entry };
   appendFileSync(join(dir, "ledger.jsonl"), JSON.stringify(record) + "\n", { mode: 0o600 });
   return record;
 }
 
+// Ledger rows are changes; verdict rows ({ verdict, of }) close them. Changes come back with
+// their latest verdict attached.
 export function ledger(dir, bot, last = 50) {
-  return readLines(join(dir, "ledger.jsonl")).filter((r) => !bot || r.bot === bot).slice(-last);
+  const rows = readLines(join(dir, "ledger.jsonl"));
+  const verdicts = {};
+  for (const r of rows) if (r.of) verdicts[r.of] = { verdict: r.verdict, note: r.note, decidedAt: r.at };
+  return rows.filter((r) => !r.of && (!bot || r.bot === bot)).map((r) => ({ ...r, ...verdicts[r.id] })).slice(-last);
+}
+
+export function decide(dir, id, verdict, note, now = Date.now()) {
+  if (!["kept", "reverted"].includes(verdict)) throw new Error("verdict must be kept or reverted");
+  if (!ledger(dir, undefined, Infinity).some((r) => r.id === id)) throw new Error(`no change ${id}`);
+  const record = { at: new Date(now).toISOString(), of: id, verdict, ...(note && { note }) };
+  appendFileSync(join(dir, "ledger.jsonl"), JSON.stringify(record) + "\n", { mode: 0o600 });
+  return record;
+}
+
+const DAY = 86_400_000;
+const FRICTION = new Set(["correction", "tool_failure", "error"]);
+const dayOf = (t) => new Date(t).toISOString().slice(0, 10);
+const matches = (re, r) => re.test([r.text, r.tool, r.error].filter(Boolean).join(" "));
+
+// Friction per 100 user turns in [from, to). The change's own day is left out of both sides,
+// since turns are only counted per day.
+function windowStats(signals, turnsByDay, from, to, watch) {
+  let turns = 0;
+  for (const [day, n] of Object.entries(turnsByDay)) if (day >= dayOf(from) && day < dayOf(to)) turns += n;
+  const inside = signals.filter((r) => FRICTION.has(r.kind) && r.t >= from && r.t < to && dayOf(r.t) >= dayOf(from) && dayOf(r.t) < dayOf(to));
+  const friction = inside.length;
+  const watched = watch ? inside.filter((r) => matches(watch, r)).length : undefined;
+  const rate = (n) => (turns ? Math.round((n / turns) * 1000) / 10 : null);
+  return { turns, friction, rate: rate(friction), ...(watch && { watched, watchedRate: rate(watched) }) };
+}
+
+/**
+ * Scores each open change: friction per 100 turns in the window before it versus after it.
+ * Pure local arithmetic, so a bot can run it as often as it likes at no model cost.
+ */
+export function score(dir, bot, { now = Date.now(), windowDays = 14, minTurns = 30 } = {}) {
+  const state = readState(dir);
+  const signals = readLines(join(dir, "signals.jsonl")).filter((r) => r.bot === bot);
+  const turnsByDay = state.turns?.[bot] ?? {};
+  const changes = ledger(dir, bot, Infinity);
+  const startOfDay = (t) => Math.floor(t / DAY) * DAY;
+  const out = [];
+  for (const c of changes) {
+    if (c.verdict) continue;
+    const at = Date.parse(c.at);
+    let watch;
+    try {
+      watch = c.watch ? new RegExp(c.watch, "i") : undefined;
+    } catch {}
+    const changeDay = startOfDay(at);
+    const before = windowStats(signals, turnsByDay, changeDay - windowDays * DAY, changeDay, watch);
+    const after = windowStats(signals, turnsByDay, changeDay + DAY, Math.min(now, changeDay + DAY + windowDays * DAY), watch);
+    let verdict;
+    let reason;
+    if (after.turns < minTurns) [verdict, reason] = ["wait", `${after.turns}/${minTurns} turns since the change`];
+    else if (watch && before.watched > 0) {
+      if (after.watchedRate === 0) [verdict, reason] = ["keep", "the watched problem stopped"];
+      else if (after.watchedRate >= before.watchedRate) [verdict, reason] = ["revert", "the watched problem did not drop"];
+      else [verdict, reason] = ["keep", "the watched problem dropped"];
+    } else if (before.rate === null || before.friction === 0) [verdict, reason] = after.friction <= 1 ? ["keep", "no baseline friction and none added"] : ["revert", "friction appeared after the change"];
+    else if (after.rate <= before.rate) [verdict, reason] = ["keep", "friction rate held or fell"];
+    else if (after.rate > before.rate * 1.25 && after.friction >= 3) [verdict, reason] = ["revert", "friction rate rose over 25%"];
+    else [verdict, reason] = ["keep", "within noise"];
+    out.push({ id: c.id, at: c.at, target: c.target, change: c.change, ...(c.undo && { undo: c.undo }), before, after, verdict, reason });
+  }
+  return out;
+}
+
+/** Cheap gate for a scheduled retro: is there anything worth spending a model turn on? */
+export function due(dir, bot, opts = {}) {
+  const p = pending(dir, bot);
+  const scored = score(dir, bot, opts);
+  const ready = scored.filter((s) => s.verdict !== "wait").length;
+  return { due: p.total >= 5 || ready > 0, pendingSignals: p.total, changesToDecide: ready, changesWaiting: scored.length - ready };
 }
 
 function parseArgs(argv) {
@@ -122,8 +198,15 @@ const USAGE = `usage: node hill.mjs <command>
   pending [--bot ID]            unreviewed corrections, preferences and repeated failures
   digest <sessionId> [--max N]  compact transcript: user turns, bot replies, failed tools
   reviewed --bot ID             mark this bot's signals as reviewed
-  log --bot ID --target T --change C --why W [--evidence E]   record a change in the ledger
-  ledger [--bot ID] [--last N]  recorded changes, newest last`;
+  log --bot ID --target T --change C --why W [--evidence E] [--watch REGEX] [--undo U]
+                                record a change; --watch matches the signals it should stop,
+                                --undo says how to reverse it (old text, or "delete line X")
+  ledger [--bot ID] [--last N]  recorded changes with their verdicts, newest last
+  score --bot ID [--window DAYS] [--min-turns N]
+                                friction per 100 turns before vs after each open change,
+                                with a keep / revert / wait verdict
+  verdict --id ID --kept|--reverted [--note N]   close a change after acting on its score
+  due --bot ID                  is a retro worth running? (pending signals or verdicts ready)`;
 
 function main() {
   const a = parseArgs(process.argv.slice(2));
@@ -149,9 +232,29 @@ function main() {
       return print("ok");
     case "log":
       for (const k of ["bot", "target", "change", "why"]) if (typeof a[k] !== "string") throw new Error(`--${k} is required`);
-      return print(log(need(), { bot: a.bot, target: a.target, change: a.change, why: a.why, ...(typeof a.evidence === "string" && { evidence: a.evidence }) }));
+      if (typeof a.watch === "string") new RegExp(a.watch, "i");
+      return print(
+        log(need(), {
+          bot: a.bot,
+          target: a.target,
+          change: a.change,
+          why: a.why,
+          ...Object.fromEntries(["evidence", "watch", "undo"].filter((k) => typeof a[k] === "string").map((k) => [k, a[k]])),
+        }),
+      );
     case "ledger":
       return print(ledger(need(), bot, Number(a.last) || 50));
+    case "score": {
+      if (!bot) throw new Error("--bot is required");
+      return print(score(need(), bot, { windowDays: Number(a.window) || 14, minTurns: Number(a["min-turns"]) || 30 }));
+    }
+    case "verdict":
+      if (typeof a.id !== "string") throw new Error("--id is required");
+      if (!a.kept === !a.reverted) throw new Error("pass exactly one of --kept or --reverted");
+      return print(decide(need(), a.id, a.kept ? "kept" : "reverted", typeof a.note === "string" ? a.note : undefined));
+    case "due":
+      if (!bot) throw new Error("--bot is required");
+      return print(dir ? due(dir, bot) : { due: false, pendingSignals: 0, changesToDecide: 0, changesWaiting: 0 });
     default:
       return print(USAGE);
   }
