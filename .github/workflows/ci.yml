@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/validate.mjs
-      - run: node --test test/
+      - run: node --test "test/*.test.mjs"
       - name: Hevy tools match the live OpenAPI spec
         if: github.event_name != 'pull_request'
         run: |
