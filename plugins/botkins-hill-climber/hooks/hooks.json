@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "sessionStart": [
+      { "type": "command", "bash": "PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\" node \"$PLUGIN_ROOT/hooks/hill.mjs\" sessionStart", "timeoutSec": 5, "env": { "HILL_CLIMBER_NUDGES": "${HILL_CLIMBER_NUDGES}" } }
+    ],
+    "userPromptSubmitted": [
+      { "type": "command", "bash": "PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\" node \"$PLUGIN_ROOT/hooks/hill.mjs\" userPromptSubmitted", "timeoutSec": 5, "env": { "HILL_CLIMBER_NUDGES": "${HILL_CLIMBER_NUDGES}" } }
+    ],
+    "postToolUseFailure": [
+      { "type": "command", "bash": "PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\" node \"$PLUGIN_ROOT/hooks/hill.mjs\" postToolUseFailure", "timeoutSec": 5 }
+    ],
+    "errorOccurred": [
+      { "type": "command", "bash": "PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\" node \"$PLUGIN_ROOT/hooks/hill.mjs\" errorOccurred", "timeoutSec": 5 }
+    ],
+    "sessionEnd": [
+      { "type": "command", "bash": "PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\" node \"$PLUGIN_ROOT/hooks/hill.mjs\" sessionEnd", "timeoutSec": 5 }
+    ]
+  }
+}
