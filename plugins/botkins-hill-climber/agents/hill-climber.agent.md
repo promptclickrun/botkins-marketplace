@@ -1,8 +1,6 @@
 ---
 name: hill-climber
 description: Reviews one bot's recent chat sessions and Hill Climber signals and returns a ranked list of proposed improvements, with evidence, for the bot to apply. Read-only. Use for a full retro over many sessions, so the transcripts stay out of the main chat's context.
-model: [claude-haiku-5.5, gpt-5.4-mini, gpt-5-mini, claude-haiku-4.5]
-model-policy: preferred
 reasoning-effort: low
 ---
 

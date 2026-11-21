@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { classify, handle, scrub } from "../plugins/botkins-hill-climber/hooks/hill.mjs";
-import { decide, digest, due, ledger, log, markReviewed, pending, score } from "../plugins/botkins-hill-climber/skills/hill-climb-retro/scripts/hill.mjs";
+import { decide, digest, due, ledger, log, markReviewed, pending, reviewerModel, score } from "../plugins/botkins-hill-climber/skills/hill-climb-retro/scripts/hill.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const HOOK = join(ROOT, "plugins/botkins-hill-climber/hooks/hill.mjs");
@@ -137,6 +137,27 @@ test("due gates scheduled retros so quiet weeks cost nothing", () => {
   assert.equal(due(dir, "b1", { now: T0 + 3 * DAY }).due, false);
   traffic(dir, 3, 1, 5, 5);
   assert.equal(due(dir, "b1", { now: T0 + 4 * DAY }).due, true);
+});
+
+test("reviewer models stay on the bot's own provider and harness", () => {
+  const root = tmp();
+  const write = (ws) => writeFileSync(join(root, "workspace.json"), JSON.stringify(ws));
+  const ws = {
+    settings: { harness: "copilot", model: { model: "opus", provider: "claude" } },
+    bots: [{ id: "a" }, { id: "s", model: { model: "gpt-6.2-astra", provider: "codex" } }, { id: "g", model: { model: "gpt-6.2-sol", provider: "copilot" } }],
+    chats: [{ id: "c1", botId: "a", model: { model: "gpt-6-sol", provider: "copilot" } }],
+  };
+  write(ws);
+  assert.deepEqual(reviewerModel(root, "a").candidates, ["claude/haiku", "claude/claude-haiku-4-5-20251001"]);
+  assert.equal(reviewerModel(root, "a").source, "default");
+  assert.deepEqual(reviewerModel(root, "s").candidates, ["chatgpt/gpt-6-luna"]);
+  assert.deepEqual(reviewerModel(root, "g").candidates, ["claude-haiku-5.5", "gpt-6-luna", "claude-haiku-4.5", "gemini-3.8-flash"]);
+  assert.equal(reviewerModel(root, "a", "c1").source, "chat");
+  assert.equal(reviewerModel(root, "a", "c1").candidates[0], "claude-haiku-5.5");
+  write({ ...ws, settings: { ...ws.settings, harness: "provider" } });
+  assert.deepEqual(reviewerModel(root, "a").candidates, ["haiku", "claude-haiku-4-5-20251001"]);
+  write({ bots: [{ id: "x", model: { model: "m", provider: "opencode" } }] });
+  assert.deepEqual(reviewerModel(root, "x").candidates, []);
 });
 
 test("hook command reads stdin and prints one JSON line", () => {

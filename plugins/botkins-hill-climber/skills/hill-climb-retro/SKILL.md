@@ -13,7 +13,7 @@ Helper: `node "<this skill's folder>/scripts/hill.mjs" <command>`. Run it with n
 
 - The helper does the counting and scoring. Don't re-derive numbers by reading transcripts.
 - Start with `hill.mjs due --bot <id>`. If `due` is false and the person didn't ask, stop there and say nothing.
-- Read at most three digests yourself, with `--max 6000`. For more, use the `hill-climber` agent, which is pinned to small, cheap models.
+- Read at most three digests yourself, with `--max 6000`. For more, use the `hill-climber` agent on a cheap model (below).
 - One retro produces at most three new changes. Fewer, better changes score more clearly.
 
 ## Pick the mode
@@ -28,7 +28,8 @@ Helper: `node "<this skill's folder>/scripts/hill.mjs" <command>`. Run it with n
    - `revert`: undo it with its `undo` field (restore the old text, delete the line, `memory_forget`), read the target back, then `hill.mjs verdict --id <id> --reverted --note "<reason>"`. Reverting your own edit is safe; tell the person in the report.
    - `wait`: leave it alone. Never stack a second change on the same target while one is waiting, or neither can be scored.
 1. **Gather.** `hill.mjs pending --bot <your bot id>` lists unreviewed corrections, preferences and repeated tool failures with session ids. For the sessions that matter most, `hill.mjs digest <sessionId> --max 6000`. Also read what you already have: `memory_read`, `profile_read` for AGENTS.md and USER.md, and your skill list. No signals yet (another harness, fresh install) means you work from this chat and the person's answers.
-   With more than three sessions to read, hand them to the `hill-climber` agent (bot id, helper path, session ids) and work from its proposals. That keeps transcripts out of this chat and runs on a cheap model.
+   With more than three sessions to read, hand them to the `hill-climber` agent (bot id, helper path, session ids) and work from its proposals. That keeps transcripts out of this chat.
+   **Pick its model first:** `hill.mjs model --bot <id> --chat <chat id if known>` lists cheap models on your own provider, cheapest first. Pass the first one your task tool's model list offers. If none is offered, leave the model out so it runs on your current model. If the call fails on the model, retry once with no model. Never pick a model from another provider.
 2. **Find lessons.** A lesson is a pattern, not an incident. Keep it when at least one holds:
    - The person stated it as a rule ("from now on", "always", "never").
    - The same correction or failure shows up twice or more.

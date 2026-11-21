@@ -40,7 +40,16 @@ The retro scores open changes first, reverts the losers with their undo note, an
 
 - Counting, scoring and `due` are plain Node arithmetic with no model calls.
 - The hooks never call a model. Their hints are one short line, and rare.
-- The `hill-climber` agent asks for small models (`claude-haiku-5.5`, `gpt-5.4-mini`, `gpt-5-mini`, `claude-haiku-4.5`) at low reasoning effort, so big retros don't run on the chat's main model. The policy is `preferred`, so it falls back to the session model if none are available.
+- The `hill-climber` agent runs at low reasoning effort on a cheap model from the bot's own provider. `hill.mjs model --bot <id>` reads the chat, bot or default model in Settings and returns the chain for that provider, cheapest first. If none of them is offered, the agent runs on the session's model.
+
+  | Bot's provider | Chain |
+  | --- | --- |
+  | GitHub Copilot | `claude-haiku-5.5`, `gpt-6-luna`, `claude-haiku-4.5`, `gemini-3.8-flash` |
+  | Claude plan | `claude/haiku` (current Haiku), `claude/claude-haiku-4-5-20251001` |
+  | ChatGPT plan | `chatgpt/gpt-6-luna` |
+  | Anything else | none, so the session's model is used |
+
+  The chain never crosses providers, so a retro can't bill a plan the bot doesn't use or fail on one that isn't signed in. Under the per-provider harness the plan prefix is dropped. There's no model in the agent's frontmatter because a frontmatter model ignores the provider.
 - A retro reads at most three trimmed digests itself and makes at most three changes.
 - An optional weekly routine runs `due` first, so a quiet week costs one short turn.
 

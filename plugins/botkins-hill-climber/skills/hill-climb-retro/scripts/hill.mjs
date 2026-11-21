@@ -175,6 +175,42 @@ export function score(dir, bot, { now = Date.now(), windowDays = 14, minTurns = 
   return out;
 }
 
+// The reviewer's model chain (Haiku 5.5, GPT-6 Luna, Haiku 4.5, Gemini 3.8 Flash), kept to the
+// models the bot's own provider offers, in that provider's ids. Crossing to another provider
+// would bill a connection the bot doesn't use, or fail where that connection isn't signed in.
+// Under the Copilot harness another plan's models are "<plan>/<id>" (Botkins desktop/harness).
+const CHAIN = {
+  copilot: ["claude-haiku-5.5", "gpt-6-luna", "claude-haiku-4.5", "gemini-3.8-flash"],
+  // Claude Code's "haiku" alias is its current Haiku, 5.5 today.
+  claude: ["haiku", "claude-haiku-4-5-20251001"],
+  codex: ["gpt-6-luna"],
+};
+const PLAN = { claude: "claude/", codex: "chatgpt/" };
+export function reviewerChain(provider, harness = "copilot") {
+  const list = CHAIN[provider] ?? [];
+  const hosted = harness !== "provider" && Object.hasOwn(PLAN, provider);
+  return hosted ? list.map((id) => PLAN[provider] + id) : list;
+}
+
+/**
+ * Which model the hill-climber agent should run on for this bot: the chain for the provider the
+ * bot actually uses (chat, then bot, then the default in Settings). When none is offered, the
+ * caller leaves the model out and the agent runs on the session's own model.
+ */
+export function reviewerModel(root, bot, chat) {
+  let ws = {};
+  try {
+    ws = JSON.parse(readFileSync(join(root, "workspace.json"), "utf8"));
+  } catch {}
+  const chatModel = chat ? ws.chats?.find((c) => c.id === chat)?.model : undefined;
+  const botModel = bot ? ws.bots?.find((b) => b.id === bot)?.model : undefined;
+  const selection = chatModel ?? botModel ?? ws.settings?.model ?? null;
+  const source = chatModel ? "chat" : botModel ? "bot" : selection ? "default" : "none";
+  const provider = selection?.provider ?? "copilot";
+  const candidates = reviewerChain(provider, ws.settings?.harness);
+  return { provider, source, current: selection?.model ?? null, candidates, otherwise: "leave the model out: the agent uses this session's model" };
+}
+
 /** Cheap gate for a scheduled retro: is there anything worth spending a model turn on? */
 export function due(dir, bot, opts = {}) {
   const p = pending(dir, bot);
@@ -206,7 +242,9 @@ const USAGE = `usage: node hill.mjs <command>
                                 friction per 100 turns before vs after each open change,
                                 with a keep / revert / wait verdict
   verdict --id ID --kept|--reverted [--note N]   close a change after acting on its score
-  due --bot ID                  is a retro worth running? (pending signals or verdicts ready)`;
+  due --bot ID                  is a retro worth running? (pending signals or verdicts ready)
+  model --bot ID [--chat ID]    models for the hill-climber agent on this bot's provider, cheapest
+                                first: pass the first one your task tool offers, else none`;
 
 function main() {
   const a = parseArgs(process.argv.slice(2));
@@ -252,6 +290,8 @@ function main() {
       if (typeof a.id !== "string") throw new Error("--id is required");
       if (!a.kept === !a.reverted) throw new Error("pass exactly one of --kept or --reverted");
       return print(decide(need(), a.id, a.kept ? "kept" : "reverted", typeof a.note === "string" ? a.note : undefined));
+    case "model":
+      return print(reviewerModel(root, bot, typeof a.chat === "string" ? a.chat : undefined));
     case "due":
       if (!bot) throw new Error("--bot is required");
       return print(dir ? due(dir, bot) : { due: false, pendingSignals: 0, changesToDecide: 0, changesWaiting: 0 });
