@@ -1,6 +1,6 @@
 {
   "name": "botkins-hill-climber",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Bots that get better with use. Quiet hooks note corrections, stated preferences and repeated tool failures; retro and curate skills turn them into small, logged changes to memory, profiles, skills and the wiki.",
   "author": { "name": "Botkins", "url": "https://botkins.app" },
   "homepage": "https://github.com/promptclickrun/botkins-marketplace/tree/main/plugins/botkins-hill-climber",

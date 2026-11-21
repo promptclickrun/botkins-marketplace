@@ -20,6 +20,10 @@ Bots that get better with use. Hill Climber notices when you correct a bot, stat
 | `sessionEnd` | End reason | No |
 | `sessionStart` | Nothing | Once per bot per day, when 5+ signals are unreviewed: "run a retro at a natural pause" |
 
+Messages are matched after folding phone and keyboard typography to plain text: curly quotes and apostrophes, smart dashes, non-breaking and narrow spaces, zero-width characters, full-width letters. "Don’t" and "Don't" read the same.
+
+Only the person's own words count. Messages a bot wrote are skipped and not counted as turns: teammate asks (`ask_teammate`), routine runs and Today panel refreshes. A teammate's own tool failures still count against that teammate.
+
 Each hook is one short Node process with a 5 second limit. Everything goes to `signals.jsonl`, `state.json` and `ledger.jsonl` in the plugin's own data folder (`<Botkins>/.botkins-plugin-data/botkins-hill-climber-*`, mode 600). Set **Nudges** to `off` to keep recording without any hints.
 
 Why hooks at all: a bot can't notice its own repeated mistakes across chats without some record of them, and the person shouldn't have to remember to ask. The hooks are kept to passive logging plus two rate-limited hints.
@@ -33,6 +37,8 @@ Each change is logged with a `--watch` regex (the signals it should stop) and an
 | `wait` | Fewer than 30 user turns since the change |
 | `keep` | The watched problem dropped or stopped, or overall friction held or fell |
 | `revert` | The watched problem didn't drop, or overall friction rose over 25% |
+
+**Per bot.** Signals, turn counts, reviews and changes are keyed by bot. A bot scores its own changes on its own signals only, and edits only its own memory and profile. Changes to things every bot reads (custom skills, the wiki, Home Assistant or app settings) are logged `shared`. They need the person's okay first, are scored on every bot's signals, and are reverted if any single bot got worse.
 
 The retro scores open changes first, reverts the losers with their undo note, and records verdicts. Nothing new goes on a target while a change there is still waiting, so each change gets a clean read. The hook counts turns per bot per day (no text) to give the score its denominator.
 

@@ -11,16 +11,90 @@ const BOT_NUDGE_MS = 24 * 60 * 60_000;
 const RETRO_THRESHOLD = 5;
 const TURN_DAYS_KEPT = 180;
 
+// Phones and some keyboards send typographic characters: ’ for ', “ ” for ", – — for -, non-breaking
+// and narrow spaces, zero-width joiners, full-width letters. Fold all of them to plain ASCII-ish
+// text first, so the patterns below only ever see one spelling.
+const QUOTES = /[\u2018\u2019\u201A\u201B\u2032\u2035\u02BB\u02BC\u02BD\u0060\u00B4\uFF07]/g;
+const DQUOTES = /[\u201C\u201D\u201E\u201F\u2033\u2036\u00AB\u00BB\uFF02]/g;
+const DASHES = /[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g;
+const INVISIBLE = /[\u00AD\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF]/g;
+const SPACES = /[\s\u00A0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]+/g;
+export const normalize = (value) =>
+  String(value ?? "")
+    .normalize("NFKC")
+    .replace(INVISIBLE, "")
+    .replace(QUOTES, "'")
+    .replace(DQUOTES, '"')
+    .replace(DASHES, "-")
+    .replace(SPACES, " ")
+    .trim()
+    .toLowerCase();
+
 // Tuned for precision over recall: a missed lesson costs little, a nudge on every message is noise.
-const CORRECTION = /^(no|nope|wrong|stop|actually|ugh)\b[\s,.!]|\b(that'?s|this is) (not right|wrong|incorrect)\b|\bi (told|asked) you\b|\bnot what i (asked|meant|wanted|said)\b|\b(already|just) (told|said|asked)\b|\bwhy (did|would) you\b|\byou (forgot|missed|ignored|keep|didn'?t)\b|\bdon'?t (ever|do that)\b|\bstop (doing|using|saying|adding)\b/i;
-const PREFERENCE = /\b(from now on|going forward|in the future|next time|always (use|do|say|ask|check)|never (use|do|say|ask)|remember (that|to)|i (prefer|want you to|like it when))\b/i;
+// Matched against normalize()d text, so only straight apostrophes and lowercase appear here.
+const CORRECTION = new RegExp(
+  [
+    // "No, I meant..." but not "No problem" or "No worries".
+    String.raw`^(no|nope|nah|wrong|incorrect|ugh|not quite|stop)\s*[,.!:;-]`,
+    String.raw`^(no|nope|nah),? (that|it|this|i|you|not)\b`,
+    String.raw`^(here'?s a |a |one |quick |small |minor )?correction\b`,
+    String.raw`\bthat'?s a correction\b`,
+    String.raw`\b(that'?s|this is|it'?s|that is|this isn'?t|that isn'?t|it isn'?t) (not right|wrong|incorrect|not correct|not what|what i asked)\b`,
+    String.raw`\bi (already )?(told|asked) you\b`,
+    String.raw`\b(like|as) i (said|told you|asked)\b`,
+    String.raw`\bnot what i (asked|meant|wanted|said)\b`,
+    String.raw`\b(already|just) (told|said|asked)\b`,
+    String.raw`\bwhy (did|would) you\b`,
+    String.raw`\bwhy do you keep\b`,
+    String.raw`\byou (forgot|missed|ignored|keep|kept|didn'?t|did not|got it wrong)\b`,
+    // An instruction at the start of a sentence, not "I don't use Gmail".
+    String.raw`(^|[.!?:;] )(please )?(don'?t|do not) (ever|do that|say|tell me|give me|call me|use|add|guess)\b`,
+    String.raw`\bstop (doing|using|saying|adding|giving|asking)\b`,
+  ].join("|"),
+);
+const PREFERENCE = /\b(from now on|going forward|in the future|next time|always (use|do|say|ask|check|give)|never (use|do|say|ask|give)|remember (that|to)|i (prefer|want you to|like it when)|i('d| would) rather)\b/;
 
 export function classify(prompt) {
-  const text = String(prompt ?? "").trim();
+  const text = normalize(prompt);
   if (!text || text.length > 4_000) return null;
   if (PREFERENCE.test(text)) return "preference";
   if (CORRECTION.test(text)) return "correction";
   return null;
+}
+
+// Only the person teaches a bot. Teammate asks arrive as a prompt the asking bot wrote, in a
+// session named "<chat>-team-<bot>" and opening "Message from <bot> (<role>):". Routine and panel
+// refresh chats run on instructions a bot wrote earlier. Neither counts as the person's words.
+const TEAMMATE_PROMPT = /^message from [^\n]{1,80} \([^\n]{0,200}\):/;
+export function botAuthored(input, chatKind) {
+  const session = String(input.sessionId ?? "");
+  if (input.chatId && input.botId && session === `${input.chatId}-team-${input.botId}`) return "teammate";
+  if (/-team-[0-9a-f-]{8,}$/i.test(session)) return "teammate";
+  if (TEAMMATE_PROMPT.test(normalize(input.prompt))) return "teammate";
+  if (chatKind === "routine" || chatKind === "panel") return chatKind;
+  return null;
+}
+
+// What kind of chat this is, read once from Botkins' workspace and cached in state.
+function chatKindFor(state, chat) {
+  if (!chat) return "chat";
+  state.chatKind ??= {};
+  if (state.chatKind[chat]) return state.chatKind[chat];
+  let kind = "chat";
+  const root = process.env.BOTKINS_DIR;
+  if (root) {
+    try {
+      const c = JSON.parse(readFileSync(join(root, "workspace.json"), "utf8")).chats?.find((x) => x.id === chat);
+      if (c?.panelId) kind = "panel";
+      else if ((c?.schedules ?? []).some((s) => s?.routine)) kind = "routine";
+    } catch {
+      return kind;
+    }
+  }
+  const keys = Object.keys(state.chatKind);
+  if (keys.length > 500) for (const k of keys.slice(0, keys.length - 400)) delete state.chatKind[k];
+  state.chatKind[chat] = kind;
+  return kind;
 }
 
 const clip = (value, max) => (typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, max) : undefined);
@@ -75,6 +149,10 @@ export function handle(evt, input, dir, { now = Date.now(), nudges = true } = {}
   let context;
 
   if (evt === "userPromptSubmitted") {
+    if (botAuthored(input, chatKindFor(state, chat))) {
+      writeState(dir, state);
+      return null;
+    }
     // Turn counts per bot per day are the denominator for scoring. No prompt text is kept here.
     if (bot) {
       const day = new Date(now).toISOString().slice(0, 10);

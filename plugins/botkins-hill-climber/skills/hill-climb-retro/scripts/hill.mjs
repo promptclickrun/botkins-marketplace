@@ -97,20 +97,32 @@ export function digest(root, sessionId, max = 12_000) {
   return out.length <= max ? out : out.slice(0, Math.floor(max * 0.4)) + "\n[... middle omitted ...]\n" + out.slice(-Math.floor(max * 0.6));
 }
 
+// A change is "shared" when other bots read the same thing: custom skills, the wiki, home or app
+// configuration. Those are scored on every bot's signals, not just the bot that made them.
+const SHARED_TARGET = /^(skill|new-skill|wiki)\b|\bwiki\b|(^|\/)skills\//i;
+export const scopeOf = (target, explicit) => (explicit === "shared" || explicit === "own" ? explicit : SHARED_TARGET.test(String(target ?? "")) ? "shared" : "own");
+
 export function log(dir, entry, now = Date.now()) {
   const id = `c${now.toString(36)}${Math.floor(Math.random() * 1296).toString(36).padStart(2, "0")}`;
-  const record = { id, at: new Date(now).toISOString(), ...entry };
+  const { scope, ...rest } = entry;
+  const record = { id, at: new Date(now).toISOString(), ...rest, scope: scopeOf(entry.target, scope) };
   appendFileSync(join(dir, "ledger.jsonl"), JSON.stringify(record) + "\n", { mode: 0o600 });
   return record;
 }
 
 // Ledger rows are changes; verdict rows ({ verdict, of }) close them. Changes come back with
-// their latest verdict attached.
+// their latest verdict attached. A bot sees its own changes plus every shared change, since a
+// shared change touches what it reads too.
 export function ledger(dir, bot, last = 50) {
   const rows = readLines(join(dir, "ledger.jsonl"));
   const verdicts = {};
   for (const r of rows) if (r.of) verdicts[r.of] = { verdict: r.verdict, note: r.note, decidedAt: r.at };
-  return rows.filter((r) => !r.of && (!bot || r.bot === bot)).map((r) => ({ ...r, ...verdicts[r.id] })).slice(-last);
+  return rows
+    .filter((r) => !r.of)
+    .map((r) => ({ ...r, scope: r.scope ?? scopeOf(r.target) }))
+    .filter((r) => !bot || r.bot === bot || r.scope === "shared")
+    .map((r) => ({ ...r, ...verdicts[r.id] }))
+    .slice(-last);
 }
 
 export function decide(dir, id, verdict, note, now = Date.now()) {
@@ -142,35 +154,72 @@ function windowStats(signals, turnsByDay, from, to, watch) {
  * Scores each open change: friction per 100 turns in the window before it versus after it.
  * Pure local arithmetic, so a bot can run it as often as it likes at no model cost.
  */
+function judge(before, after, watch, minTurns) {
+  if (after.turns < minTurns) return ["wait", `${after.turns}/${minTurns} turns since the change`];
+  if (watch && before.watched > 0) {
+    if (after.watchedRate === 0) return ["keep", "the watched problem stopped"];
+    if (after.watchedRate >= before.watchedRate) return ["revert", "the watched problem did not drop"];
+    return ["keep", "the watched problem dropped"];
+  }
+  if (before.rate === null || before.friction === 0) return after.friction <= 1 ? ["keep", "no baseline friction and none added"] : ["revert", "friction appeared after the change"];
+  if (after.rate <= before.rate) return ["keep", "friction rate held or fell"];
+  if (after.rate > before.rate * 1.25 && after.friction >= 3) return ["revert", "friction rate rose over 25%"];
+  return ["keep", "within noise"];
+}
+
+const sumTurns = (all) => {
+  const out = {};
+  for (const days of Object.values(all ?? {})) for (const [d, n] of Object.entries(days)) out[d] = (out[d] ?? 0) + n;
+  return out;
+};
+
 export function score(dir, bot, { now = Date.now(), windowDays = 14, minTurns = 30 } = {}) {
   const state = readState(dir);
-  const signals = readLines(join(dir, "signals.jsonl")).filter((r) => r.bot === bot);
-  const turnsByDay = state.turns?.[bot] ?? {};
+  const all = readLines(join(dir, "signals.jsonl"));
   const changes = ledger(dir, bot, Infinity);
   const startOfDay = (t) => Math.floor(t / DAY) * DAY;
   const out = [];
   for (const c of changes) {
     if (c.verdict) continue;
-    const at = Date.parse(c.at);
     let watch;
     try {
       watch = c.watch ? new RegExp(c.watch, "i") : undefined;
     } catch {}
-    const changeDay = startOfDay(at);
-    const before = windowStats(signals, turnsByDay, changeDay - windowDays * DAY, changeDay, watch);
-    const after = windowStats(signals, turnsByDay, changeDay + DAY, Math.min(now, changeDay + DAY + windowDays * DAY), watch);
-    let verdict;
-    let reason;
-    if (after.turns < minTurns) [verdict, reason] = ["wait", `${after.turns}/${minTurns} turns since the change`];
-    else if (watch && before.watched > 0) {
-      if (after.watchedRate === 0) [verdict, reason] = ["keep", "the watched problem stopped"];
-      else if (after.watchedRate >= before.watchedRate) [verdict, reason] = ["revert", "the watched problem did not drop"];
-      else [verdict, reason] = ["keep", "the watched problem dropped"];
-    } else if (before.rate === null || before.friction === 0) [verdict, reason] = after.friction <= 1 ? ["keep", "no baseline friction and none added"] : ["revert", "friction appeared after the change"];
-    else if (after.rate <= before.rate) [verdict, reason] = ["keep", "friction rate held or fell"];
-    else if (after.rate > before.rate * 1.25 && after.friction >= 3) [verdict, reason] = ["revert", "friction rate rose over 25%"];
-    else [verdict, reason] = ["keep", "within noise"];
-    out.push({ id: c.id, at: c.at, target: c.target, change: c.change, ...(c.undo && { undo: c.undo }), before, after, verdict, reason });
+    const changeDay = startOfDay(Date.parse(c.at));
+    const windows = (signals, turnsByDay) => ({
+      before: windowStats(signals, turnsByDay, changeDay - windowDays * DAY, changeDay, watch),
+      after: windowStats(signals, turnsByDay, changeDay + DAY, Math.min(now, changeDay + DAY + windowDays * DAY), watch),
+    });
+    const shared = c.scope === "shared";
+    // An own change is judged on its bot's signals only. A shared one on everyone's, and also bot
+    // by bot, so a change that helps one bot can't hide one it made worse for another.
+    const { before, after } = shared ? windows(all, sumTurns(state.turns)) : windows(all.filter((r) => r.bot === c.bot), state.turns?.[c.bot] ?? {});
+    let [verdict, reason] = judge(before, after, watch, minTurns);
+    let perBot;
+    if (shared) {
+      perBot = {};
+      for (const b of Object.keys(state.turns ?? {})) {
+        const w = windows(all.filter((r) => r.bot === b), state.turns[b]);
+        const [v, why] = judge(w.before, w.after, watch, minTurns);
+        perBot[b] = { verdict: v, reason: why, turnsAfter: w.after.turns };
+        if (verdict !== "wait" && v === "revert") [verdict, reason] = ["revert", `worse for bot ${b}: ${why}`];
+      }
+    }
+    out.push({
+      id: c.id,
+      at: c.at,
+      bot: c.bot,
+      scope: c.scope,
+      target: c.target,
+      change: c.change,
+      ...(c.bot !== bot && { madeByAnotherBot: true }),
+      ...(c.undo && { undo: c.undo }),
+      before,
+      after,
+      ...(perBot && { perBot }),
+      verdict,
+      reason,
+    });
   }
   return out;
 }
@@ -234,9 +283,11 @@ const USAGE = `usage: node hill.mjs <command>
   pending [--bot ID]            unreviewed corrections, preferences and repeated failures
   digest <sessionId> [--max N]  compact transcript: user turns, bot replies, failed tools
   reviewed --bot ID             mark this bot's signals as reviewed
-  log --bot ID --target T --change C --why W [--evidence E] [--watch REGEX] [--undo U]
+  log --bot ID --target T --change C --why W [--evidence E] [--watch REGEX] [--undo U] [--scope own|shared]
                                 record a change; --watch matches the signals it should stop,
-                                --undo says how to reverse it (old text, or "delete line X")
+                                --undo says how to reverse it (old text, or "delete line X"),
+                                --scope shared for things every bot reads (skills, wiki, home
+                                config); skill and wiki targets are shared automatically
   ledger [--bot ID] [--last N]  recorded changes with their verdicts, newest last
   score --bot ID [--window DAYS] [--min-turns N]
                                 friction per 100 turns before vs after each open change,
@@ -277,7 +328,7 @@ function main() {
           target: a.target,
           change: a.change,
           why: a.why,
-          ...Object.fromEntries(["evidence", "watch", "undo"].filter((k) => typeof a[k] === "string").map((k) => [k, a[k]])),
+          ...Object.fromEntries(["evidence", "watch", "undo", "scope"].filter((k) => typeof a[k] === "string").map((k) => [k, a[k]])),
         }),
       );
     case "ledger":
