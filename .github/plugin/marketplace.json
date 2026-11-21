@@ -2,7 +2,7 @@
   "name": "botkins",
   "displayName": "Botkins",
   "metadata": {
-    "description": "Plugins and integrations curated for Botkins bots.",
+    "description": "Plugins and agent templates curated for Botkins bots.",
     "version": "1.0.0"
   },
   "owner": { "name": "Botkins", "url": "https://botkins.app" },
@@ -32,6 +32,104 @@
       "category": "productivity",
       "auth": "none",
       "source": "./plugins/botkins-hill-climber"
+    }
+  ],
+  "agents": [
+    {
+      "name": "inbox-sorter",
+      "source": "./agents/inbox-sorter.json",
+      "category": "productivity",
+      "version": "1.0.0",
+      "keywords": ["email", "inbox", "triage", "replies", "gmail", "outlook"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "weekly-chief",
+      "source": "./agents/weekly-chief.json",
+      "category": "productivity",
+      "version": "1.0.0",
+      "keywords": ["weekly review", "planning", "priorities", "tasks", "calendar", "chief of staff"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "meeting-briefer",
+      "source": "./agents/meeting-briefer.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["meetings", "agenda", "notes", "action items", "calendar"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "copy-editor",
+      "source": "./agents/copy-editor.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["editing", "proofreading", "grammar", "clarity", "writing"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "fact-scout",
+      "source": "./agents/fact-scout.json",
+      "category": "research",
+      "version": "1.0.0",
+      "keywords": ["fact check", "sources", "verification", "claims", "statistics"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "budget-coach",
+      "source": "./agents/budget-coach.json",
+      "category": "finance",
+      "version": "1.0.0",
+      "keywords": ["budget", "spending", "savings", "subscriptions", "spreadsheet"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "meal-planner",
+      "source": "./agents/meal-planner.json",
+      "category": "home",
+      "version": "1.0.0",
+      "keywords": ["meals", "recipes", "groceries", "shopping list", "cooking"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "trip-planner",
+      "source": "./agents/trip-planner.json",
+      "category": "life",
+      "version": "1.0.0",
+      "keywords": ["travel", "trips", "itinerary", "vacation", "planning"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "language-partner",
+      "source": "./agents/language-partner.json",
+      "category": "learning",
+      "version": "1.0.0",
+      "keywords": ["language", "conversation", "practice", "vocabulary", "grammar"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "training-coach",
+      "source": "./agents/training-coach.json",
+      "category": "health",
+      "version": "1.0.0",
+      "keywords": ["workouts", "strength", "fitness", "training", "hevy", "gym"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "social-poster",
+      "source": "./agents/social-poster.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["social media", "posts", "linkedin", "threads", "copywriting"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "code-reviewer",
+      "source": "./agents/code-reviewer.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["code review", "pull request", "bugs", "security", "tests"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
     }
   ]
 }
