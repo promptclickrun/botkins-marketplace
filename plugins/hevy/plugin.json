@@ -1,0 +1,19 @@
+{
+  "name": "hevy",
+  "version": "1.0.0",
+  "description": "Read and log Hevy workouts, routines, exercises and body measurements with your personal Hevy API key.",
+  "author": { "name": "Botkins", "url": "https://botkins.app" },
+  "homepage": "https://developers.hevy.com",
+  "repository": "https://github.com/promptclickrun/botkins-marketplace",
+  "license": "MIT",
+  "keywords": ["hevy", "fitness", "workouts", "gym", "health"],
+  "userConfig": {
+    "HEVY_API_KEY": {
+      "title": "Hevy API key",
+      "description": "Needs Hevy Pro. Create one at https://developers.hevy.com/api-key",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "postInstallMessage": "Add your Hevy API key (Hevy Pro) from https://developers.hevy.com/api-key. Requires Node.js on this computer."
+}

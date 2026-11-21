@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "hevy": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["server.mjs"],
+      "env": { "HEVY_API_KEY": "${HEVY_API_KEY}" }
+    }
+  }
+}

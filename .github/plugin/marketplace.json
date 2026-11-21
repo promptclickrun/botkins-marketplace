@@ -1,0 +1,24 @@
+{
+  "name": "botkins",
+  "displayName": "Botkins",
+  "metadata": {
+    "description": "Plugins and integrations curated for Botkins bots.",
+    "version": "1.0.0"
+  },
+  "owner": { "name": "Botkins", "url": "https://botkins.app" },
+  "plugins": [
+    {
+      "name": "hevy",
+      "description": "Read and log Hevy workouts, routines, exercises and body measurements with your personal Hevy API key.",
+      "version": "1.0.0",
+      "author": { "name": "Botkins", "url": "https://botkins.app" },
+      "homepage": "https://developers.hevy.com",
+      "repository": "https://github.com/promptclickrun/botkins-marketplace",
+      "license": "MIT",
+      "keywords": ["hevy", "fitness", "workouts", "gym", "health"],
+      "category": "health",
+      "auth": "api-key",
+      "source": "./plugins/hevy"
+    }
+  ]
+}
