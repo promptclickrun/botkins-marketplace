@@ -7,6 +7,7 @@ The first-party plugin catalog for [Botkins](https://github.com/promptclickrun/B
 | Plugin | What it does | Auth |
 | --- | --- | --- |
 | [hevy](plugins/hevy) | Read and log Hevy workouts, routines, exercises and body measurements | Personal API key (Hevy Pro) |
+| [botkins-hill-climber](plugins/botkins-hill-climber) | Bots learn from corrections and failures and turn them into small, logged changes to memory, profiles and skills | None (local hooks) |
 
 ## Install
 

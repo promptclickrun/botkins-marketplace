@@ -19,6 +19,19 @@
       "category": "health",
       "auth": "api-key",
       "source": "./plugins/hevy"
+    },
+    {
+      "name": "botkins-hill-climber",
+      "description": "Bots that get better with use. Quiet hooks note corrections, stated preferences and repeated tool failures; retro and curate skills turn them into small, logged changes to memory, profiles, skills and the wiki.",
+      "version": "1.0.0",
+      "author": { "name": "Botkins", "url": "https://botkins.app" },
+      "homepage": "https://github.com/promptclickrun/botkins-marketplace/tree/main/plugins/botkins-hill-climber",
+      "repository": "https://github.com/promptclickrun/botkins-marketplace",
+      "license": "MIT",
+      "keywords": ["self-improvement", "memory", "skills", "retro", "lessons-learned", "agents"],
+      "category": "productivity",
+      "auth": "none",
+      "source": "./plugins/botkins-hill-climber"
     }
   ]
 }
