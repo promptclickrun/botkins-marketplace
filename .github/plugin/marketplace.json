@@ -130,6 +130,206 @@
       "version": "1.0.0",
       "keywords": ["code review", "pull request", "bugs", "security", "tests"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "move-coordinator",
+      "source": "./agents/move-coordinator.json",
+      "category": "home",
+      "version": "1.0.0",
+      "keywords": ["moving", "packing", "handoff"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "renewal-tracker",
+      "source": "./agents/renewal-tracker.json",
+      "category": "finance",
+      "version": "1.0.0",
+      "keywords": ["subscriptions", "renewals", "deadlines"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "home-maintainer",
+      "source": "./agents/home-maintainer.json",
+      "category": "home",
+      "version": "1.0.0",
+      "keywords": ["maintenance", "appliances", "seasonal chores"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "study-partner",
+      "source": "./agents/study-partner.json",
+      "category": "learning",
+      "version": "1.0.0",
+      "keywords": ["studying", "flashcards", "practice"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "return-organizer",
+      "source": "./agents/return-organizer.json",
+      "category": "life",
+      "version": "1.0.0",
+      "keywords": ["receipts", "returns", "refund"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "family-handoff",
+      "source": "./agents/family-handoff.json",
+      "category": "home",
+      "version": "1.0.0",
+      "keywords": ["family", "caregiving", "routines"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "errand-planner",
+      "source": "./agents/errand-planner.json",
+      "category": "life",
+      "version": "1.0.0",
+      "keywords": ["errands", "pickups", "routing"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "gift-finder",
+      "source": "./agents/gift-finder.json",
+      "category": "life",
+      "version": "1.0.0",
+      "keywords": ["gifts", "occasions", "shopping"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "appointment-prep",
+      "source": "./agents/appointment-prep.json",
+      "category": "health",
+      "version": "1.0.0",
+      "keywords": ["appointments", "questions", "visit notes"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "wardrobe-planner",
+      "source": "./agents/wardrobe-planner.json",
+      "category": "life",
+      "version": "1.0.0",
+      "keywords": ["clothing", "outfits", "laundry"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "cash-forecast",
+      "source": "./agents/cash-forecast.json",
+      "category": "finance",
+      "version": "1.0.0",
+      "keywords": ["cash flow", "treasury", "forecast"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "sales-discovery",
+      "source": "./agents/sales-discovery.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["sales", "discovery", "qualification"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "release-steward",
+      "source": "./agents/release-steward.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["release", "rollout", "engineering"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "campaign-designer",
+      "source": "./agents/campaign-designer.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["marketing", "campaigns", "experiments"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "invoice-matcher",
+      "source": "./agents/invoice-matcher.json",
+      "category": "finance",
+      "version": "1.0.0",
+      "keywords": ["invoices", "reconciliation", "procurement"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "support-triage",
+      "source": "./agents/support-triage.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["support", "tickets", "triage"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "research-synthesis",
+      "source": "./agents/research-synthesis.json",
+      "category": "research",
+      "version": "1.0.0",
+      "keywords": ["interviews", "customer research", "themes"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "vendor-compare",
+      "source": "./agents/vendor-compare.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["vendors", "proposals", "purchasing"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "incident-retro",
+      "source": "./agents/incident-retro.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["incidents", "postmortem", "reliability"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "onboarding-guide",
+      "source": "./agents/onboarding-guide.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["onboarding", "hiring", "training"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "oral-history",
+      "source": "./agents/oral-history.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["memories", "interviews", "family history"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "tabletop-mystery",
+      "source": "./agents/tabletop-mystery.json",
+      "category": "other",
+      "version": "1.0.0",
+      "keywords": ["games", "mystery", "tabletop"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "sound-walk",
+      "source": "./agents/sound-walk.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["listening", "sound", "walks"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "micro-museum",
+      "source": "./agents/micro-museum.json",
+      "category": "other",
+      "version": "1.0.0",
+      "keywords": ["museum", "objects", "curation"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "constraint-poet",
+      "source": "./agents/constraint-poet.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["poetry", "workshop", "verse"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
     }
   ]
 }

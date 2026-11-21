@@ -27,6 +27,31 @@ An agent template is a bot ready to be made: a name, a role, instructions and a 
 | [Spotter](agents/training-coach.json) | Plans workouts and reviews your log; reads Hevy when the plugin is on | health |
 | [Chirp](agents/social-poster.json) | Three drafts of a social post in your voice | media |
 | [Patch](agents/code-reviewer.json) | Reviews a diff or pull request for bugs, security and missing tests | dev |
+| [Relay](agents/move-coordinator.json) | Builds a moving checklist backward from key handoff, including the jobs that need to happen while both homes are accessible. | home |
+| [Tickler](agents/renewal-tracker.json) | Turns renewal notices into a timeline showing when you need to decide and what waiting could cost. | finance |
+| [Rafter](agents/home-maintainer.json) | Turns appliance manuals and household chores into a seasonal maintenance calendar. | home |
+| [Recall](agents/study-partner.json) | Builds short practice sessions from your notes and revisits the concepts you miss. | learning |
+| [Slip](agents/return-organizer.json) | Reads receipts and return policies to make a checklist for getting an unwanted purchase back on time. | life |
+| [Baton](agents/family-handoff.json) | Makes a one-page handoff for someone covering a household routine. | home |
+| [Loop](agents/errand-planner.json) | Fits errands into a realistic outing around opening hours, pickups and what you can carry. | life |
+| [Ribbon](agents/gift-finder.json) | Finds gift ideas that fit the recipient, the occasion and a real spending limit. | life |
+| [Pocket](agents/appointment-prep.json) | Organizes your observations and questions into a note you can bring to a medical visit. | health |
+| [Hem](agents/wardrobe-planner.json) | Builds outfits for the week from clothes you own, with time for laundry between wears. | life |
+| [Float](agents/cash-forecast.json) | Builds a weekly cash forecast and shows which late receipts would put the balance under pressure. | finance |
+| [Probe](agents/sales-discovery.json) | Turns an account brief into discovery questions and a clear test of whether a deal is worth pursuing. | work |
+| [Gantry](agents/release-steward.json) | Builds a go-or-hold brief from release scope, checks and rollback evidence. | dev |
+| [Signal](agents/campaign-designer.json) | Turns a campaign idea into a test with an audience, a comparison group and a decision rule. | work |
+| [Tally](agents/invoice-matcher.json) | Matches invoice lines to purchase orders and receipts and explains discrepancies before payment review. | finance |
+| [Queue](agents/support-triage.json) | Sorts support tickets by impact and urgency and prepares a handoff for the next responder. | work |
+| [Thread](agents/research-synthesis.json) | Groups interview evidence into themes while keeping disagreements and source quotations visible. | research |
+| [Sieve](agents/vendor-compare.json) | Compares vendor proposals against weighted requirements and exposes gaps behind the headline price. | work |
+| [Debrief](agents/incident-retro.json) | Reconstructs an incident timeline and turns contributing conditions into verifiable follow-up work. | dev |
+| [Dock](agents/onboarding-guide.json) | Builds a first-month plan around the work a new teammate needs to do independently. | work |
+| [Keepsake](agents/oral-history.json) | Guides a family history interview and shapes the answers into an annotated memory vignette. | writing |
+| [Alibi](agents/tabletop-mystery.json) | Designs a playable mystery with clue cards, suspects and a solution the host can explain. | other |
+| [Echo](agents/sound-walk.json) | Turns a familiar walk into a listening score with prompts for each stop. | media |
+| [Cabinet](agents/micro-museum.json) | Turns a few ordinary objects into a miniature exhibition with labels and a visitor route. | other |
+| [Stanza](agents/constraint-poet.json) | Builds a poetry exercise around a chosen constraint and helps revise one line at a time. | writing |
 
 ## Install
 
@@ -49,7 +74,7 @@ Local MCP servers should run on plain Node.js with no `npm install`. Botkins cop
 2. Use **Export template…** on it (on a phone, the share sheet gives you the same file). Save the file as `agents/<name>.json`. The name is lowercase letters, digits and dashes.
 3. Add an entry to the `agents` list in `.github/plugin/marketplace.json`, with `name`, `source` (`./agents/<name>.json`), `category`, `version`, `keywords` (at most 12) and `author`. The order of the list is the order people see, so the most useful template goes first.
    - `category`: `writing`, `research`, `productivity`, `work`, `dev`, `learning`, `health`, `finance`, `home`, `media`, `life` or `other`.
-   - The file needs a one-sentence `summary` (at most 240 characters, shown as the description), a `role` (at most 90) and a `look` with a `head` and a `palette`. Use a head no other template uses.
+   - The file needs a one-sentence `summary` (at most 240 characters, shown as the description), a `role` (at most 90) and a `look` with a `head` and a `palette`. Use a head and palette combination no other template uses.
 4. Run `node scripts/validate.mjs && node --test "test/*.test.mjs"` and open a PR. The checks use the same limits as Botkins does when it imports a template.
 
 ## Review rules for agent templates
