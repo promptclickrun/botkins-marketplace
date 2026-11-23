@@ -3,7 +3,7 @@
   "displayName": "Botkins",
   "metadata": {
     "description": "Plugins and agent templates curated for Botkins bots.",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "owner": { "name": "Botkins", "url": "https://botkins.app" },
   "plugins": [
@@ -329,6 +329,606 @@
       "category": "writing",
       "version": "1.0.0",
       "keywords": ["poetry", "workshop", "verse"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "api-contract-designer",
+      "source": "./agents/api-contract-designer.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["api design", "contracts", "versioning"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "novel-architect",
+      "source": "./agents/novel-architect.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["novels", "plot", "fiction"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "visual-composition-coach",
+      "source": "./agents/visual-composition-coach.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["composition", "painting", "thumbnails", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "side-quest-goblin",
+      "source": "./agents/side-quest-goblin.json",
+      "category": "productivity",
+      "version": "1.0.0",
+      "keywords": ["chores", "motivation", "quests"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "library-research-guide",
+      "source": "./agents/library-research-guide.json",
+      "category": "research",
+      "version": "1.0.0",
+      "keywords": ["library research", "literature search", "sources"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "data-migration-planner",
+      "source": "./agents/data-migration-planner.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["schema migration", "backfill", "cutover"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "dialogue-workshop",
+      "source": "./agents/dialogue-workshop.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["dialogue", "screenwriting", "characters"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "music-arranger",
+      "source": "./agents/music-arranger.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["arrangement", "music", "ensemble", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "alien-field-naturalist",
+      "source": "./agents/alien-field-naturalist.json",
+      "category": "learning",
+      "version": "1.0.0",
+      "keywords": ["observation", "creative play", "field notes"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "decision-journal",
+      "source": "./agents/decision-journal.json",
+      "category": "productivity",
+      "version": "1.0.0",
+      "keywords": ["decisions", "journal", "tradeoffs"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "test-strategist",
+      "source": "./agents/test-strategist.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["testing", "edge cases", "acceptance criteria"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "essay-coach",
+      "source": "./agents/essay-coach.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["essays", "nonfiction", "memoir"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "photography-contact-sheet",
+      "source": "./agents/photography-contact-sheet.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["photography", "sequencing", "contact sheet", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "bad-ideas-office",
+      "source": "./agents/bad-ideas-office.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["brainstorming", "humor", "ideation"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "facilitation-designer",
+      "source": "./agents/facilitation-designer.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["facilitation", "workshops", "participation"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "performance-investigator",
+      "source": "./agents/performance-investigator.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["profiling", "latency", "performance"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "technical-explainer",
+      "source": "./agents/technical-explainer.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["technical writing", "explanations", "analogies"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "storyboard-director",
+      "source": "./agents/storyboard-director.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["storyboard", "film", "shots", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "monster-etiquette",
+      "source": "./agents/monster-etiquette.json",
+      "category": "life",
+      "version": "1.0.0",
+      "keywords": ["etiquette", "roleplay", "conversations"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "knowledge-base-gardener",
+      "source": "./agents/knowledge-base-gardener.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["knowledge base", "documentation", "information architecture"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "accessibility-walkthrough",
+      "source": "./agents/accessibility-walkthrough.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["accessibility", "keyboard", "screen readers"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "speechwriter",
+      "source": "./agents/speechwriter.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["speeches", "keynotes", "toasts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "songwriting-room",
+      "source": "./agents/songwriting-room.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["songwriting", "lyrics", "hooks", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "sports-commentator",
+      "source": "./agents/sports-commentator.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["commentary", "humor", "storytelling"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "event-access-planner",
+      "source": "./agents/event-access-planner.json",
+      "category": "life",
+      "version": "1.0.0",
+      "keywords": ["events", "accessibility", "logistics"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "dependency-upgrade-guide",
+      "source": "./agents/dependency-upgrade-guide.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["dependencies", "upgrades", "compatibility"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "newsletter-editor",
+      "source": "./agents/newsletter-editor.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["newsletter", "editorial", "curation"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "color-script-artist",
+      "source": "./agents/color-script-artist.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["color theory", "palette", "visual storytelling", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "raccoon-repurpose-lab",
+      "source": "./agents/raccoon-repurpose-lab.json",
+      "category": "home",
+      "version": "1.0.0",
+      "keywords": ["upcycling", "maker projects", "prototyping"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "collection-archivist",
+      "source": "./agents/collection-archivist.json",
+      "category": "home",
+      "version": "1.0.0",
+      "keywords": ["archives", "collections", "metadata"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "component-librarian",
+      "source": "./agents/component-librarian.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["design systems", "components", "tokens"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "comic-script-editor",
+      "source": "./agents/comic-script-editor.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["comics", "panels", "graphic novels"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "choreography-notebook",
+      "source": "./agents/choreography-notebook.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["dance", "choreography", "movement", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "time-travel-radio",
+      "source": "./agents/time-travel-radio.json",
+      "category": "learning",
+      "version": "1.0.0",
+      "keywords": ["history", "radio", "improvisation"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "practice-session-coach",
+      "source": "./agents/practice-session-coach.json",
+      "category": "learning",
+      "version": "1.0.0",
+      "keywords": ["practice", "skills", "feedback"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "data-pipeline-engineer",
+      "source": "./agents/data-pipeline-engineer.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["etl", "pipelines", "idempotency"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "worldbuilding-editor",
+      "source": "./agents/worldbuilding-editor.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["worldbuilding", "fiction", "continuity"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "fiber-pattern-planner",
+      "source": "./agents/fiber-pattern-planner.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["textiles", "knitting", "weaving", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "puzzle-parlor",
+      "source": "./agents/puzzle-parlor.json",
+      "category": "other",
+      "version": "1.0.0",
+      "keywords": ["puzzles", "word games", "game night"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "survey-question-designer",
+      "source": "./agents/survey-question-designer.json",
+      "category": "research",
+      "version": "1.0.0",
+      "keywords": ["surveys", "questionnaires", "sampling"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "build-diagnostician",
+      "source": "./agents/build-diagnostician.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["ci", "build errors", "toolchain"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "book-proposal-editor",
+      "source": "./agents/book-proposal-editor.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["book proposals", "publishing", "nonfiction"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "ceramic-form-studio",
+      "source": "./agents/ceramic-form-studio.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["ceramics", "pottery", "prototypes", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "houseplant-theater",
+      "source": "./agents/houseplant-theater.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["comedy", "serial fiction", "improv"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "offer-comparison",
+      "source": "./agents/offer-comparison.json",
+      "category": "finance",
+      "version": "1.0.0",
+      "keywords": ["job offers", "compensation", "benefits"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "architecture-decision-writer",
+      "source": "./agents/architecture-decision-writer.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["architecture", "adr", "tradeoffs"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "interactive-fiction",
+      "source": "./agents/interactive-fiction.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["interactive fiction", "choices", "branching"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "audio-fiction-producer",
+      "source": "./agents/audio-fiction-producer.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["audio drama", "foley", "sound design", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "bureau-of-small-wins",
+      "source": "./agents/bureau-of-small-wins.json",
+      "category": "life",
+      "version": "1.0.0",
+      "keywords": ["celebration", "reflection", "journaling"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "volunteer-coordinator",
+      "source": "./agents/volunteer-coordinator.json",
+      "category": "work",
+      "version": "1.0.0",
+      "keywords": ["volunteering", "shifts", "coverage"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "offline-sync-designer",
+      "source": "./agents/offline-sync-designer.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["offline", "sync", "conflicts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "grant-narrative-editor",
+      "source": "./agents/grant-narrative-editor.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["grant writing", "applications", "proposals"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "zine-maker",
+      "source": "./agents/zine-maker.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["zines", "print", "layout", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "improv-kitchen-table",
+      "source": "./agents/improv-kitchen-table.json",
+      "category": "other",
+      "version": "1.0.0",
+      "keywords": ["improv", "party games", "performance"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "repair-or-replace",
+      "source": "./agents/repair-or-replace.json",
+      "category": "home",
+      "version": "1.0.0",
+      "keywords": ["repair", "household costs", "warranties"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "query-plan-reader",
+      "source": "./agents/query-plan-reader.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["sql", "query plans", "indexes"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "oral-instructions-writer",
+      "source": "./agents/oral-instructions-writer.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["procedures", "how-to", "sops"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "game-mechanics-workshop",
+      "source": "./agents/game-mechanics-workshop.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["game design", "mechanics", "playtesting", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "imaginary-transit",
+      "source": "./agents/imaginary-transit.json",
+      "category": "other",
+      "version": "1.0.0",
+      "keywords": ["maps", "worldbuilding", "transport"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "citizen-science-notebook",
+      "source": "./agents/citizen-science-notebook.json",
+      "category": "learning",
+      "version": "1.0.0",
+      "keywords": ["nature", "field observations", "citizen science"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "observability-designer",
+      "source": "./agents/observability-designer.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["observability", "telemetry", "alerts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "childrens-story-studio",
+      "source": "./agents/childrens-story-studio.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["children's books", "read aloud", "storytelling"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "exhibition-designer",
+      "source": "./agents/exhibition-designer.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["exhibitions", "visitor experience", "interpretation", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "tiny-debate-club",
+      "source": "./agents/tiny-debate-club.json",
+      "category": "other",
+      "version": "1.0.0",
+      "keywords": ["debate", "party games", "decisions"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "cli-designer",
+      "source": "./agents/cli-designer.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["cli", "terminal", "developer experience"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "developmental-beta-reader",
+      "source": "./agents/developmental-beta-reader.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["beta reading", "manuscript", "reader feedback"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "collage-workshop",
+      "source": "./agents/collage-workshop.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["collage", "assemblage", "mixed media", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "dream-post-office",
+      "source": "./agents/dream-post-office.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["surrealism", "letters", "creative prompts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "localization-engineer",
+      "source": "./agents/localization-engineer.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["internationalization", "localization", "translations"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "adaptation-workshop",
+      "source": "./agents/adaptation-workshop.json",
+      "category": "writing",
+      "version": "1.0.0",
+      "keywords": ["adaptation", "theater", "audio drama"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "type-specimen-coach",
+      "source": "./agents/type-specimen-coach.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["typography", "lettering", "hierarchy", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "state-machine-mapper",
+      "source": "./agents/state-machine-mapper.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["state machines", "workflows", "modeling"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "portfolio-critic",
+      "source": "./agents/portfolio-critic.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["portfolio", "creative careers", "case studies", "arts"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "sdk-sample-builder",
+      "source": "./agents/sdk-sample-builder.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["sdk", "samples", "developer onboarding"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    },
+    {
+      "name": "codebase-navigator",
+      "source": "./agents/codebase-navigator.json",
+      "category": "dev",
+      "version": "1.0.0",
+      "keywords": ["codebase", "onboarding", "source navigation"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     }
   ]
