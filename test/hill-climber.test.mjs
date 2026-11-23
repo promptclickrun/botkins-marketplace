@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -10,6 +11,8 @@ import { decide, digest, due, ledger, log, markReviewed, pending, reviewerModel,
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const HOOK = join(ROOT, "plugins/botkins-hill-climber/hooks/hill.mjs");
+const HELPER = join(ROOT, "plugins/botkins-hill-climber/skills/hill-climb-retro/scripts/hill.mjs");
+const SCHEDULER = join(ROOT, "plugins/botkins-hill-climber/skills/hill-climb-retro/scripts/schedule.mjs");
 const tmp = () => mkdtempSync(join(tmpdir(), "hill-"));
 const signals = (dir) => readFileSync(join(dir, "signals.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
 
@@ -78,6 +81,20 @@ test("bot-written prompts are never counted as the person's words", () => {
   }
 });
 
+test("the proactive retro does not turn its own failures into new review work", () => {
+  const dir = tmp();
+  const root = tmp();
+  writeFileSync(join(root, "workspace.json"), JSON.stringify({
+    chats: [{ id: "retro", schedules: [{ routine: true, name: "Hill Climber retro", script: "node gate", followUp: true }] }],
+  }));
+  const env = { BOTKINS_DIR: root, PLUGIN_DATA: dir };
+  const input = JSON.stringify({ botId: "b1", chatId: "retro", error: "timeout" });
+  for (const event of ["postToolUseFailure", "errorOccurred"]) {
+    execFileSync(process.execPath, [HOOK, event], { env, input });
+  }
+  assert.equal(pending(dir, "b1").total, 0);
+});
+
 test("scrub removes credentials before they reach disk", () => {
   assert.equal(scrub("use ghp_abcdefghijklmnop1234 now"), "use [redacted] now");
   assert.equal(scrub("my password: hunter2hunter2"), "my password [redacted]");
@@ -122,6 +139,7 @@ test("pending groups repeated failures and respects the review mark", () => {
   assert.equal(p.preferences[0].text, "From now on CC my assistant");
   assert.deepEqual(p.sessions, ["s9"]);
   markReviewed(dir, "b1", 12);
+  markReviewed(dir, "b1", 11);
   assert.equal(pending(dir, "b1").total, 0);
 });
 
@@ -164,7 +182,7 @@ test("score waits for enough turns, then keeps changes that lowered friction", (
   const dir = tmp();
   traffic(dir, 0, 10, 10, 2);
   const good = log(dir, { bot: "b1", target: "USER.md", change: "Give times in Central", why: "x", watch: "central", undo: "delete line" }, T0 + 10 * DAY);
-  const bad = log(dir, { bot: "b1", target: "AGENTS.md", change: "Something unrelated", why: "x" }, T0 + 10 * DAY);
+  const bad = log(dir, { bot: "b1", target: "AGENTS.md", change: "Something unrelated", why: "x" }, T0 + 10 * DAY + 1);
   assert.equal(score(dir, "b1", { now: T0 + 11 * DAY })[0].verdict, "wait");
   traffic(dir, 11, 10, 10, 0);
   handle("postToolUseFailure", { botId: "b1", toolName: "gmail", error: "401" }, dir, { now: T0 + 12 * DAY });
@@ -188,6 +206,20 @@ test("score reverts a change when its watched problem keeps happening", () => {
   assert.equal(r.id, c.id);
   assert.equal(r.verdict, "revert");
   assert.throws(() => decide(dir, "nope", "kept"), /no change/);
+});
+
+test("a missing baseline cannot trigger a rollback or a scheduled retro", () => {
+  const dir = tmp();
+  log(dir, { bot: "b1", target: "USER.md", change: "Give times in Central", why: "x", watch: "central" }, T0);
+  traffic(dir, 1, 4, 10, 1, "No, you forgot the attachment");
+  markReviewed(dir, "b1", T0 + 5 * DAY);
+  const opts = { now: T0 + 5 * DAY };
+  const [result] = score(dir, "b1", opts);
+  assert.equal(result.before.turns, 0);
+  assert.equal(result.after.turns, 40);
+  assert.equal(result.verdict, "wait");
+  assert.match(result.reason, /baseline/i);
+  assert.equal(due(dir, "b1", opts).due, false);
 });
 
 test("own changes are scored per bot; shared changes on every bot, reverted if any got worse", () => {
@@ -217,6 +249,10 @@ test("own changes are scored per bot; shared changes on every bot, reverted if a
   assert.equal(forD[0].madeByAnotherBot, true);
   assert.equal(pending(dir, "d").corrections.every((c) => c.text.includes("Central")), true);
   assert.equal(ledger(dir, "d").length, 1);
+  markReviewed(dir, "d", T0 + 22 * DAY);
+  markReviewed(dir, "a", T0 + 22 * DAY);
+  assert.equal(due(dir, "d", { now: T0 + 22 * DAY }).due, false, "another bot's shared change does not wake this bot");
+  assert.equal(due(dir, "a", { now: T0 + 22 * DAY }).due, true, "ready verdicts wake the bot that owns them");
 });
 
 test("due gates scheduled retros so quiet weeks cost nothing", () => {
@@ -225,6 +261,60 @@ test("due gates scheduled retros so quiet weeks cost nothing", () => {
   assert.equal(due(dir, "b1", { now: T0 + 3 * DAY }).due, false);
   traffic(dir, 3, 1, 5, 5);
   assert.equal(due(dir, "b1", { now: T0 + 4 * DAY }).due, true);
+});
+
+test("the native wake gate sleeps until its bot needs a retro and skips retries that day", () => {
+  const root = tmp();
+  const dir = tmp();
+  const wake = () => JSON.parse(execFileSync(process.execPath, [HELPER, "wake", "--bot", "b1"], {
+    env: { BOTKINS_DIR: root, PLUGIN_DATA: dir },
+  }).toString());
+  for (let i = 0; i < 5; i++) handle("postToolUseFailure", { botId: "b2", error: "timeout" }, dir, { now: T0 + i });
+  traffic(dir, 0, 1, 4, 4);
+  assert.equal(wake().wakeAgent, false);
+  traffic(dir, 1, 1, 1, 1);
+  assert.equal(wake().wakeAgent, true);
+  assert.equal(wake().wakeAgent, false);
+});
+
+test("owner setup registers a standalone routine that follows the enabled plugin revision", { skip: process.platform === "win32" }, () => {
+  const root = mkdtempSync(join(tmpdir(), "hill script with 'quote "));
+  const id = "botkins-hill-climber@botkins";
+  const slug = "botkins-hill-climber_botkins";
+  const hash = createHash("sha256").update(id).digest("hex").slice(0, 16);
+  const dir = join(root, ".botkins-plugin-data", `botkins-hill-climber-botkins-${hash}`);
+  const revision = "a".repeat(64);
+  const installed = join(root, "plugin-marketplace/plugins", slug, revision, "skills/hill-climb-retro/scripts");
+  mkdirSync(installed, { recursive: true });
+  copyFileSync(HELPER, join(installed, "hill.mjs"));
+  writeFileSync(join(root, "workspace.json"), JSON.stringify({ bots: [{ id: "b1", model: { provider: "copilot", model: "gpt-6-luna" } }] }));
+  const plugin = { id, revision, enabled: true, installed: true, status: "ready", bots: ["b1"] };
+  const fixture = join(root, "plugin-fixture.json");
+  writeFileSync(fixture, JSON.stringify([plugin]));
+  writeFileSync(join(root, "botkins"), `#!${process.execPath}
+const args = process.argv.slice(2);
+if (args.includes("--version")) console.log("0.17.8");
+else if (args.includes("plugins")) console.log(require("node:fs").readFileSync(process.env.HILL_FIXTURE, "utf8"));
+else if (args.includes("list")) console.log("[]");
+else if (args.includes("add")) console.log(JSON.stringify(args));
+else process.exitCode = 1;
+`, { mode: 0o700 });
+  const env = { ...process.env, BOTKINS_DIR: root, HILL_FIXTURE: fixture, PATH: `${root}:${process.env.PATH}` };
+  const args = JSON.parse(execFileSync(process.execPath, [SCHEDULER, "--bot", "b1", "--yes"], { env }).toString());
+  assert.ok(args.includes("--follow-up"), "the scheduler must start a model follow-up when the local gate wakes it");
+  assert.equal(args[args.indexOf("--model") + 1], "copilot/gpt-6-luna");
+  const run = () => JSON.parse(execFileSync("/bin/sh", ["-c", args[args.indexOf("--script") + 1]], { env }).toString());
+  assert.equal(run().wakeAgent, false);
+  traffic(dir, 0, 1, 5, 5);
+  writeFileSync(fixture, JSON.stringify([{ ...plugin, bots: ["b2"] }]));
+  assert.equal(run().wakeAgent, false);
+  const next = "b".repeat(64);
+  const updated = join(root, "plugin-marketplace/plugins", slug, next, "skills/hill-climb-retro/scripts");
+  mkdirSync(updated, { recursive: true });
+  copyFileSync(HELPER, join(updated, "hill.mjs"));
+  writeFileSync(fixture, JSON.stringify([{ ...plugin, revision: next }]));
+  writeFileSync(join(installed, "hill.mjs"), "throw new Error('stale revision must not run');");
+  assert.equal(run().wakeAgent, true);
 });
 
 test("reviewer models stay on the bot's own provider and harness", () => {

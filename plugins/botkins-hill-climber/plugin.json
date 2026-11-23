@@ -1,7 +1,7 @@
 {
   "name": "botkins-hill-climber",
-  "version": "1.1.0",
-  "description": "Bots that get better with use. Quiet hooks note corrections, stated preferences and repeated tool failures; retro and curate skills turn them into small, logged changes to memory, profiles, skills and the wiki.",
+  "version": "1.2.0",
+  "description": "Bots that get better with use. Quiet hooks record friction, and optional proactive retros turn it into small, logged improvements without waiting for someone to ask.",
   "author": { "name": "Botkins", "url": "https://botkins.app" },
   "homepage": "https://github.com/promptclickrun/botkins-marketplace/tree/main/plugins/botkins-hill-climber",
   "repository": "https://github.com/promptclickrun/botkins-marketplace",
@@ -15,5 +15,5 @@
       "required": false
     }
   },
-  "postInstallMessage": "Signals stay on this computer in the plugin's data folder. Hooks need the Copilot harness and Node.js; on other harnesses the skills still work from the chat. Ask a bot for a retro any time."
+  "postInstallMessage": "Signals stay on this computer. Hooks need the Copilot harness and Node.js. On Botkins 0.17.7+ the host owner can ask a bot to set up proactive Hill Climber retros once, so it wakes itself when a retro is due."
 }
