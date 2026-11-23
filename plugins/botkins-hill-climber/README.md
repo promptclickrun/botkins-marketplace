@@ -8,6 +8,7 @@ Bots that get better with use. Hill Climber notices when you correct a bot, stat
 | --- | --- | --- |
 | Hooks | `hooks/hill.mjs` | Record friction signals. Add a one-line hint, rarely. Never block, rewrite or call the network. |
 | Skill | `hill-climb-retro` | Quick capture after a correction, or a full retro over recent sessions. Routes each lesson to memory, USER.md, AGENTS.md, IDENTITY.md, a custom skill or the wiki. |
+| Routine setup | `schedule.mjs` | Registers a native routine that wakes the bot when a full retro is due. |
 | Skill | `hill-climb-curate` | Dedupes, prunes and tightens what the bot has learned so profiles stay short. |
 | Agent | `hill-climber` | Read-only reviewer for big retros. Reads transcripts in its own context and returns ranked proposals with quoted evidence. |
 
@@ -22,7 +23,7 @@ Bots that get better with use. Hill Climber notices when you correct a bot, stat
 
 Messages are matched after folding phone and keyboard typography to plain text: curly quotes and apostrophes, smart dashes, non-breaking and narrow spaces, zero-width characters, full-width letters. "Don’t" and "Don't" read the same.
 
-Only the person's own words count. Messages a bot wrote are skipped and not counted as turns: teammate asks (`ask_teammate`), routine runs and Today panel refreshes. A teammate's own tool failures still count against that teammate.
+Only the person's own words count. Messages a bot wrote are skipped and not counted as turns: teammate asks (`ask_teammate`), routine runs and Today panel refreshes. Tool failures still count, except in Hill Climber's own retro routine so it can't create work for itself.
 
 Each hook is one short Node process with a 5 second limit. Everything goes to `signals.jsonl`, `state.json` and `ledger.jsonl` in the plugin's own data folder (`<Botkins>/.botkins-plugin-data/botkins-hill-climber-*`, mode 600). Set **Nudges** to `off` to keep recording without any hints.
 
@@ -34,13 +35,25 @@ Each change is logged with a `--watch` regex (the signals it should stop) and an
 
 | Verdict | When |
 | --- | --- |
-| `wait` | Fewer than 30 user turns since the change |
+| `wait` | No recorded turns before the change, or fewer than 30 user turns since it |
 | `keep` | The watched problem dropped or stopped, or overall friction held or fell |
 | `revert` | The watched problem didn't drop, or overall friction rose over 25% |
 
 **Per bot.** Signals, turn counts, reviews and changes are keyed by bot. A bot scores its own changes on its own signals only, and edits only its own memory and profile. Changes to things every bot reads (custom skills, the wiki, Home Assistant or app settings) are logged `shared`. They need the person's okay first, are scored on every bot's signals, and are reverted if any single bot got worse.
 
 The retro scores open changes first, reverts the losers with their undo note, and records verdicts. Nothing new goes on a target while a change there is still waiting, so each change gets a clean read. The hook counts turns per bot per day (no text) to give the score its denominator.
+
+## Proactive retros
+
+On Botkins 0.17.7+, the host owner can enable this once per bot. Ask the bot to set up proactive Hill Climber retros, or run this on the host using the `scripts` directory of the installed `hill-climb-retro` skill:
+
+```shell
+node path/to/scripts/schedule.mjs --bot <bot-id>
+```
+
+The native routine checks at 8:15 AM, 12:15 PM, 4:15 PM and 8:15 PM in the host's time zone (`--timezone` overrides it). It wakes that bot in its own routine chat, without a user message, when there are at least five unreviewed signals or a verdict for one of its own changes. It attempts at most one retro per 24 hours. An empty check costs no model turn. Only applied changes and verdicts are posted to the owner's Feed, with no notification.
+
+The setup uses the bot's current model and follows the enabled marketplace plugin's installed revision when it checks. Pause or remove **Hill Climber retro** in Botkins to stop it. Disabling or removing the plugin also makes its checks sleep. Install and update don't create routines without the owner's approval.
 
 ## Model spend
 
@@ -57,7 +70,7 @@ The retro scores open changes first, reverts the losers with their undo note, an
 
   The chain never crosses providers, so a retro can't bill a plan the bot doesn't use or fail on one that isn't signed in. Under the per-provider harness the plan prefix is dropped. There's no model in the agent's frontmatter because a frontmatter model ignores the provider.
 - A retro reads at most three trimmed digests itself and makes at most three changes.
-- An optional weekly routine runs `due` first, so a quiet week costs one short turn.
+- The optional proactive routine runs the local gate first, so quiet checks cost no model turns.
 
 ## Guardrails in the skills
 
@@ -69,4 +82,4 @@ The retro scores open changes first, reverts the losers with their undo note, an
 
 ## Requirements
 
-Node.js. Hooks run on the Copilot harness only; on Claude, Codex and other harnesses the skills and agent still work from the current chat.
+Node.js. Proactive setup also needs the Botkins CLI on the host's routine shell PATH. Hooks run on the Copilot harness only; on Claude, Codex and other harnesses the skills and agent still work from the current chat.

@@ -1,6 +1,6 @@
 ---
 name: hill-climb-retro
-description: Use when the person corrects you, states a standing preference, asks how you can improve, or says "retro", "lessons learned" or "hill climb", and when a Hill Climber nudge says signals are waiting. Turns chat evidence into small, verified changes to your memory, profile, skills or wiki.
+description: Use when the person corrects you, states a standing preference, asks how you can improve, or says "retro", "lessons learned" or "hill climb", or when a Hill Climber nudge or scheduled retro says a review is due. Turns chat evidence into small, verified changes to your memory, profile, skills or wiki.
 ---
 
 # Hill Climb Retro
@@ -18,7 +18,7 @@ Helper: `node "<this skill's folder>/scripts/hill.mjs" <command>`. Run it with n
 
 ## Pick the mode
 
-- **Quick capture**: a Hill Climber nudge fired, or the person just corrected you or stated a preference. Finish their request first. Then make that one change and log it (steps 4 to 6). One or two tool calls.
+- **Quick capture**: the person just corrected you or stated a preference, with or without a quick-capture nudge. Finish their request first. Then make that one change and log it (steps 4 to 6). One or two tool calls.
 - **Full retro**: the person asked, a scheduled retro ran and `due` is true, or a nudge said signals are waiting and you are at a natural pause. Run the loop below.
 
 ## Full retro loop
@@ -26,7 +26,7 @@ Helper: `node "<this skill's folder>/scripts/hill.mjs" <command>`. Run it with n
 0. **Score what's open.** `hill.mjs score --bot <id>`. For each change with a verdict:
    - `keep`: `hill.mjs verdict --id <id> --kept`.
    - `revert`: undo it with its `undo` field (restore the old text, delete the line, `memory_forget`), read the target back, then `hill.mjs verdict --id <id> --reverted --note "<reason>"`. Reverting your own edit is safe; tell the person in the report.
-   - `wait`: leave it alone. Never stack a second change on the same target while one is waiting, or neither can be scored.
+   - `wait`: leave it alone, including when there were no recorded turns before the change. Never stack a second change on a waiting target.
 1. **Gather.** `hill.mjs pending --bot <your bot id>` lists unreviewed corrections, preferences and repeated tool failures with session ids. For the sessions that matter most, `hill.mjs digest <sessionId> --max 6000`. Also read what you already have: `memory_read`, `profile_read` for AGENTS.md and USER.md, and your skill list. No signals yet (another harness, fresh install) means you work from this chat and the person's answers.
    With more than three sessions to read, hand them to the `hill-climber` agent (bot id, helper path, session ids) and work from its proposals. That keeps transcripts out of this chat.
    **Pick its model first:** `hill.mjs model --bot <id> --chat <chat id if known>` lists cheap models on your own provider, cheapest first. Pass the first one your task tool's model list offers. If none is offered, leave the model out so it runs on your current model. If the call fails on the model, retry once with no model. Never pick a model from another provider.
@@ -42,8 +42,8 @@ Helper: `node "<this skill's folder>/scripts/hill.mjs" <command>`. Run it with n
    - `--watch` is a case-insensitive regex for the signals this change should stop, matched against the person's words, tool names and error text: `gmail.*401`, `central|time ?zone`. It makes the score specific instead of judging on all friction. Skip it only when the lesson has no clear signal.
    - `--undo` is what restores the old state: the exact text replaced, "delete the line starting 'Give times'", or "memory_forget 'Central'".
    - `--scope shared` for anything other bots read too: custom skills, the wiki, Home Assistant or app settings. Skill and wiki targets are marked shared on their own. A shared change is scored on every bot's signals and reverted if it made things worse for any one of them.
-   Then `hill.mjs reviewed --bot <id>`.
-7. **Report** in at most five lines: kept and reverted changes from step 0, new changes and where, and anything you skipped. Offer to revert any of it. On a scheduled run with nothing kept, reverted or added, say nothing.
+   After a completed review, even with no changes, run `hill.mjs reviewed --bot <id>`. On a scheduled run also pass `--through <timestamp from the wake gate>` so signals arriving during the review are not cleared.
+7. **Report** in at most five lines: kept and reverted changes from step 0, new changes and where, and anything you skipped. Offer to revert any of it. On a scheduled run with nothing kept, reverted or added, reply only `[SILENT]`.
 
 ## Where a lesson goes
 
@@ -72,4 +72,4 @@ A new skill needs a `name` that matches its folder and a `description` that says
 
 ## Schedule it (once, with the person's okay)
 
-When the person wants this to run on its own, create a weekly routine with `routine_create`: cadence `weekly`, one day, a quiet hour, `notify: false`, deliver to `feed`. Instructions: "Run `hill.mjs due --bot <id>`. If due is false, reply only 'Nothing to climb.' Otherwise run the hill-climb-retro full loop and report in five lines." The `due` check means a quiet week costs one short model turn.
+When the host owner asks for proactive retros, run `node "<this skill's folder>/scripts/schedule.mjs" --bot <Botkins bot ID>` on the Botkins host (0.17.7+). Pass `--yes` only with the owner's approval if there is no interactive terminal. This creates a native script routine for that bot. The gate runs without a model and starts the full retro in its own chat only when due. Don't create a second prompt-only routine. Pause it in Botkins to turn it off.

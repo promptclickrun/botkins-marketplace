@@ -4,6 +4,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, realpathSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { ROUTINE_NAME } from "../skills/hill-climb-retro/scripts/hill.mjs";
 
 const SIGNALS_MAX_BYTES = 2_000_000;
 const CHAT_NUDGE_MS = 30 * 60_000;
@@ -86,6 +87,7 @@ function chatKindFor(state, chat) {
     try {
       const c = JSON.parse(readFileSync(join(root, "workspace.json"), "utf8")).chats?.find((x) => x.id === chat);
       if (c?.panelId) kind = "panel";
+      else if ((c?.schedules ?? []).some((s) => s?.routine && s.name === ROUTINE_NAME && s.script && s.followUp)) kind = "hill-retro";
       else if ((c?.schedules ?? []).some((s) => s?.routine)) kind = "routine";
     } catch {
       return kind;
@@ -146,10 +148,12 @@ export function handle(evt, input, dir, { now = Date.now(), nudges = true } = {}
   const chat = clip(input.chatId, 200) ?? "";
   const base = { t: now, ev: evt, bot, chat, session: clip(input.sessionId, 200) };
   const state = readState(dir);
+  const chatKind = chatKindFor(state, chat);
+  if (chatKind === "hill-retro") return null;
   let context;
 
   if (evt === "userPromptSubmitted") {
-    if (botAuthored(input, chatKindFor(state, chat))) {
+    if (botAuthored(input, chatKind)) {
       writeState(dir, state);
       return null;
     }

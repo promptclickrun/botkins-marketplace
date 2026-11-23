@@ -7,6 +7,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+export const ROUTINE_NAME = "Hill Climber retro";
 
 export function botkinsDir(start = HERE, env = process.env) {
   if (env.BOTKINS_DIR && existsSync(env.BOTKINS_DIR)) return env.BOTKINS_DIR;
@@ -68,7 +69,7 @@ export function pending(dir, bot) {
 
 export function markReviewed(dir, bot, now = Date.now()) {
   const state = readState(dir);
-  state.reviewed = { ...state.reviewed, [bot]: now };
+  state.reviewed = { ...state.reviewed, [bot]: Math.max(state.reviewed?.[bot] ?? 0, now) };
   const tmp = join(dir, `state.${process.pid}.tmp`);
   writeFileSync(tmp, JSON.stringify(state), { mode: 0o600 });
   renameSync(tmp, join(dir, "state.json"));
@@ -155,13 +156,14 @@ function windowStats(signals, turnsByDay, from, to, watch) {
  * Pure local arithmetic, so a bot can run it as often as it likes at no model cost.
  */
 function judge(before, after, watch, minTurns) {
+  if (before.turns === 0) return ["wait", "insufficient baseline: no recorded turns before the change"];
   if (after.turns < minTurns) return ["wait", `${after.turns}/${minTurns} turns since the change`];
   if (watch && before.watched > 0) {
     if (after.watchedRate === 0) return ["keep", "the watched problem stopped"];
     if (after.watchedRate >= before.watchedRate) return ["revert", "the watched problem did not drop"];
     return ["keep", "the watched problem dropped"];
   }
-  if (before.rate === null || before.friction === 0) return after.friction <= 1 ? ["keep", "no baseline friction and none added"] : ["revert", "friction appeared after the change"];
+  if (before.friction === 0) return after.friction <= 1 ? ["keep", "no baseline friction and none added"] : ["revert", "friction appeared after the change"];
   if (after.rate <= before.rate) return ["keep", "friction rate held or fell"];
   if (after.rate > before.rate * 1.25 && after.friction >= 3) return ["revert", "friction rate rose over 25%"];
   return ["keep", "within noise"];
@@ -263,9 +265,27 @@ export function reviewerModel(root, bot, chat) {
 /** Cheap gate for a scheduled retro: is there anything worth spending a model turn on? */
 export function due(dir, bot, opts = {}) {
   const p = pending(dir, bot);
-  const scored = score(dir, bot, opts);
+  const scored = score(dir, bot, opts).filter((s) => !s.madeByAnotherBot);
   const ready = scored.filter((s) => s.verdict !== "wait").length;
   return { due: p.total >= 5 || ready > 0, pendingSignals: p.total, changesToDecide: ready, changesWaiting: scored.length - ready };
+}
+
+function wake(dir, bot, now = Date.now()) {
+  if (!/^[a-z0-9_-]{1,200}$/i.test(bot ?? "")) throw new Error("wake requires a Botkins bot ID");
+  if (!dir) return { wakeAgent: false, reason: "no Hill Climber data" };
+  // Separate from state.json, which hooks update during ordinary turns.
+  const file = join(dir, `wake-${bot}.json`);
+  if (existsSync(file)) {
+    const last = JSON.parse(readFileSync(file, "utf8"));
+    if (!Number.isFinite(last)) throw new Error("invalid wake checkpoint");
+    if (now - last < DAY) return { wakeAgent: false, reason: "retro attempted in the past 24 hours" };
+  }
+  const result = due(dir, bot, { now });
+  if (!result.due) return { wakeAgent: false, reason: "not due" };
+  const tmp = `${file}.${process.pid}.tmp`;
+  writeFileSync(tmp, JSON.stringify(now), { mode: 0o600 });
+  renameSync(tmp, file);
+  return { wakeAgent: true, bot, through: new Date(now).toISOString(), pendingSignals: result.pendingSignals, changesToDecide: result.changesToDecide };
 }
 
 function parseArgs(argv) {
@@ -282,7 +302,7 @@ const USAGE = `usage: node hill.mjs <command>
   where                         Botkins folder, Hill Climber data folder, custom skills folder
   pending [--bot ID]            unreviewed corrections, preferences and repeated failures
   digest <sessionId> [--max N]  compact transcript: user turns, bot replies, failed tools
-  reviewed --bot ID             mark this bot's signals as reviewed
+  reviewed --bot ID [--through ISO]  mark this bot's signals as reviewed up to the supplied time
   log --bot ID --target T --change C --why W [--evidence E] [--watch REGEX] [--undo U] [--scope own|shared]
                                 record a change; --watch matches the signals it should stop,
                                 --undo says how to reverse it (old text, or "delete line X"),
@@ -294,6 +314,7 @@ const USAGE = `usage: node hill.mjs <command>
                                 with a keep / revert / wait verdict
   verdict --id ID --kept|--reverted [--note N]   close a change after acting on its score
   due --bot ID                  is a retro worth running? (pending signals or verdicts ready)
+  wake --bot ID                 native script gate: wake only when due, at most once per 24h
   model --bot ID [--chat ID]    models for the hill-climber agent on this bot's provider, cheapest
                                 first: pass the first one your task tool offers, else none`;
 
@@ -315,10 +336,13 @@ function main() {
       return print(pending(need(), bot));
     case "digest":
       return print(digest(root, String(a._[1] ?? ""), Number(a.max) || 12_000));
-    case "reviewed":
+    case "reviewed": {
       if (!bot) throw new Error("--bot is required");
-      markReviewed(need(), bot);
+      const through = a.through === undefined ? Date.now() : Date.parse(a.through);
+      if (!Number.isFinite(through) || through > Date.now()) throw new Error("--through must be a non-future ISO timestamp");
+      markReviewed(need(), bot, through);
       return print("ok");
+    }
     case "log":
       for (const k of ["bot", "target", "change", "why"]) if (typeof a[k] !== "string") throw new Error(`--${k} is required`);
       if (typeof a.watch === "string") new RegExp(a.watch, "i");
@@ -346,6 +370,8 @@ function main() {
     case "due":
       if (!bot) throw new Error("--bot is required");
       return print(dir ? due(dir, bot) : { due: false, pendingSignals: 0, changesToDecide: 0, changesWaiting: 0 });
+    case "wake":
+      return process.stdout.write(JSON.stringify(wake(dir, bot)) + "\n");
     default:
       return print(USAGE);
   }
