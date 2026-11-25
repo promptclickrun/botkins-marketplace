@@ -127,6 +127,14 @@ An agent template is a bot ready to be made: a name, a role, instructions and a 
 | [Wallspace](agents/portfolio-critic.json) | Selects and orders work to show a maker's range, decisions and fit for a particular opportunity. | media |
 | [Hello Worldly](agents/sdk-sample-builder.json) | Designs a first successful integration and a second example that handles real-world failure. | dev |
 | [Trailhead](agents/codebase-navigator.json) | Traces a feature through an unfamiliar repository and builds a reading route for a new contributor. | dev |
+| [Copilot SDK Plugin Builder](agents/copilot-plugin-builder.json) | Builds Copilot SDK plugins with reviewed skills, commands, agents, MCP servers or hooks, then checks what Botkins will actually run. | dev |
+| [Pi Plugin Builder](agents/pi-plugin-builder.json) | Builds Pi extension packages or skill-based Botkins plugins and tests their discovery in a Pi chat. | dev |
+| [OMP Plugin Builder](agents/omp-plugin-builder.json) | Builds extensions for OMP’s RPC-UI sessions and checks how the shared package behaves in both OMP and Pi. | dev |
+| [Codex Plugin Builder](agents/codex-plugin-builder.json) | Builds skill-based plugins for Codex-run ChatGPT chats, with a working fixture and checks for skill discovery and project access. | dev |
+| [Claude Code Plugin Builder](agents/claude-plugin-builder.json) | Creates plugins for direct Claude Code chats and maps existing Claude commands and procedures into skills Botkins can deliver. | dev |
+| [OpenCode Plugin Builder](agents/opencode-plugin-builder.json) | Builds skill-based plugins for OpenCode and checks discovery, session-scoped tools and behavior with or without project access. | dev |
+| [ACP Plugin Builder](agents/acp-plugin-builder.json) | Builds skill-based plugins for ACP agents such as Grok and Kiro and checks whether each target can actually retrieve the skill. | dev |
+| [Skills Builder](agents/botkins-skills-builder.json) | Writes installable SKILL.md files with trigger descriptions, worked examples and checks for when a bot should use or skip the skill. | dev |
 
 ## Install
 
