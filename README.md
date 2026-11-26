@@ -11,7 +11,7 @@ The first-party catalog of plugins and agent templates for [Botkins](https://git
 
 ## Agent templates
 
-An agent template is a bot ready to be made: a name, a role, instructions and a look. In Botkins, open **Marketplace › Agents**, pick one and choose **Install**. Create a bot opens, filled in from the template. Change what you like and save. Nothing is installed except the new bot.
+An agent template is a bot ready to be made: a name, a role, instructions and a look. In Botkins, open **Marketplace › Agents**, pick one and choose **Install**. Create a bot opens, filled in from the template. Change what you like and save. A template can include skills for its new bot and routines that start paused. Review the bundle before creating the bot.
 
 | Agent | What it does | Category |
 | --- | --- | --- |
@@ -127,14 +127,14 @@ An agent template is a bot ready to be made: a name, a role, instructions and a 
 | [Wallspace](agents/portfolio-critic.json) | Selects and orders work to show a maker's range, decisions and fit for a particular opportunity. | media |
 | [Hello Worldly](agents/sdk-sample-builder.json) | Designs a first successful integration and a second example that handles real-world failure. | dev |
 | [Trailhead](agents/codebase-navigator.json) | Traces a feature through an unfamiliar repository and builds a reading route for a new contributor. | dev |
-| [Copilot SDK Plugin Builder](agents/copilot-plugin-builder.json) | Builds Copilot SDK plugins with reviewed skills, commands, agents, MCP servers or hooks, then checks what Botkins will actually run. | dev |
-| [Pi Plugin Builder](agents/pi-plugin-builder.json) | Builds Pi extension packages or skill-based Botkins plugins and tests their discovery in a Pi chat. | dev |
-| [OMP Plugin Builder](agents/omp-plugin-builder.json) | Builds extensions for OMP’s RPC-UI sessions and checks how the shared package behaves in both OMP and Pi. | dev |
-| [Codex Plugin Builder](agents/codex-plugin-builder.json) | Builds skill-based plugins for Codex-run ChatGPT chats, with a working fixture and checks for skill discovery and project access. | dev |
-| [Claude Code Plugin Builder](agents/claude-plugin-builder.json) | Creates plugins for direct Claude Code chats and maps existing Claude commands and procedures into skills Botkins can deliver. | dev |
-| [OpenCode Plugin Builder](agents/opencode-plugin-builder.json) | Builds skill-based plugins for OpenCode and checks discovery, session-scoped tools and behavior with or without project access. | dev |
-| [ACP Plugin Builder](agents/acp-plugin-builder.json) | Builds skill-based plugins for ACP agents such as Grok and Kiro and checks whether each target can actually retrieve the skill. | dev |
-| [Skills Builder](agents/botkins-skills-builder.json) | Writes installable SKILL.md files with trigger descriptions, worked examples and checks for when a bot should use or skip the skill. | dev |
+| [Wingnut](agents/copilot-plugin-builder.json) | Builds Copilot SDK plugins with reviewed skills, commands, agents, MCP servers or hooks, then checks what Botkins will actually run. | dev |
+| [Pi Piper](agents/pi-plugin-builder.json) | Builds Pi extension packages or skill-based Botkins plugins and tests their discovery in a Pi chat. | dev |
+| [Overdrive](agents/omp-plugin-builder.json) | Builds extensions for OMP’s RPC-UI sessions and checks how the shared package behaves in both OMP and Pi. | dev |
+| [Diffsmith](agents/codex-plugin-builder.json) | Builds skill-based plugins for Codex-run ChatGPT chats, with a working fixture and checks for skill discovery and project access. | dev |
+| [Rosetta](agents/claude-plugin-builder.json) | Creates plugins for direct Claude Code chats and maps existing Claude commands and procedures into skills Botkins can deliver. | dev |
+| [Switchyard](agents/opencode-plugin-builder.json) | Builds skill-based plugins for OpenCode and checks discovery, session-scoped tools and behavior with or without project access. | dev |
+| [Interpreter](agents/acp-plugin-builder.json) | Builds skill-based plugins for ACP agents such as Grok and Kiro and checks whether each target can actually retrieve the skill. | dev |
+| [Skillwright](agents/botkins-skills-builder.json) | Writes installable SKILL.md files with trigger descriptions, worked examples and checks for when a bot should use or skip the skill. | dev |
 
 ## Install
 
@@ -159,6 +159,27 @@ Local MCP servers should run on plain Node.js with no `npm install`. Botkins cop
    - `category`: `writing`, `research`, `productivity`, `work`, `dev`, `learning`, `health`, `finance`, `home`, `media`, `life` or `other`.
    - The file needs a one-sentence `summary` (at most 240 characters, shown as the description), a `role` (at most 90) and a `look` with a `head` and a `palette`. Use a head and palette combination no other template uses.
 4. Run `node scripts/validate.mjs && node --test "test/*.test.mjs"` and open a PR. The checks use the same limits as Botkins does when it imports a template.
+
+### Bundle a skill or routine with an agent
+
+Use template file version `2` and add a top-level `bundle`. Supply either array or both. Give each skill a slash-friendly name, a trigger description and instructions. Give each routine a name, a prompt and a daily, weekdays or weekly cadence. For a weekly cadence, Sunday is 0 and Saturday is 6. Times use the host’s local time zone at installation. The catalog entry’s release version (for example `1.1.0`) is separate from the template file format.
+
+```json
+"bundle": {
+  "skills": [{
+    "name": "check-handoff",
+    "description": "Review a handoff for decisions that still need an owner.",
+    "instructions": "Read the supplied notes. List each open decision, its stated owner and the next check. Mark missing owners as unassigned."
+  }],
+  "routines": [{
+    "name": "Monday handoff review",
+    "instructions": "Use the check-handoff skill on the notes available to this bot. Report decisions still awaiting an owner in this routine’s chat.",
+    "cadence": { "kind": "weekly", "days": [1], "time": "09:00" }
+  }]
+}
+```
+
+Creating the bot gives it its own copy of each skill and routine. A second installation gets separate copies. Routines start paused. The person can review the schedule and enable a routine from Botkins. Bundles contain instructions and schedules; keep credentials, local paths, executable scripts and delivery destinations out of the bundle fields. Keep file version `1` for templates without a bundle. Hosts need support for version `2` to import a bundled template. [Example template](agents/botkins-skills-builder.json)
 
 ## Review rules for agent templates
 

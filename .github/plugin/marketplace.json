@@ -3,7 +3,7 @@
   "displayName": "Botkins",
   "metadata": {
     "description": "Plugins and agent templates curated for Botkins bots.",
-    "version": "1.3.0"
+    "version": "1.4.0"
   },
   "owner": { "name": "Botkins", "url": "https://botkins.app" },
   "plugins": [
@@ -935,64 +935,64 @@
       "name": "copilot-plugin-builder",
       "source": "./agents/copilot-plugin-builder.json",
       "category": "dev",
-      "version": "1.0.0",
-      "keywords": ["copilot sdk", "plugins", "github copilot", "mcp", "hooks", "commands", "provider default"],
+      "version": "1.1.0",
+      "keywords": ["copilot sdk plugin builder", "copilot sdk", "plugins", "github copilot", "mcp", "hooks", "commands", "provider default"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     },
     {
       "name": "pi-plugin-builder",
       "source": "./agents/pi-plugin-builder.json",
       "category": "dev",
-      "version": "1.0.0",
-      "keywords": ["pi", "plugins", "pi packages", "extensions", "rpc", "npm", "harness"],
+      "version": "1.1.0",
+      "keywords": ["pi plugin builder", "pi", "plugins", "pi packages", "extensions", "rpc", "npm", "harness"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     },
     {
       "name": "omp-plugin-builder",
       "source": "./agents/omp-plugin-builder.json",
       "category": "dev",
-      "version": "1.0.0",
-      "keywords": ["omp", "oh my pi", "plugins", "pi packages", "rpc-ui", "extensions", "harness"],
+      "version": "1.1.0",
+      "keywords": ["omp plugin builder", "omp", "oh my pi", "plugins", "pi packages", "rpc-ui", "extensions", "harness"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     },
     {
       "name": "codex-plugin-builder",
       "source": "./agents/codex-plugin-builder.json",
       "category": "dev",
-      "version": "1.0.0",
-      "keywords": ["codex", "chatgpt", "plugins", "provider default", "skills", "tool bridge"],
+      "version": "1.1.0",
+      "keywords": ["codex plugin builder", "codex", "chatgpt", "plugins", "provider default", "skills", "tool bridge"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     },
     {
       "name": "claude-plugin-builder",
       "source": "./agents/claude-plugin-builder.json",
       "category": "dev",
-      "version": "1.0.0",
-      "keywords": ["claude code", "claude", "plugins", "provider default", "skills", "porting"],
+      "version": "1.1.0",
+      "keywords": ["claude code plugin builder", "claude code", "claude", "plugins", "provider default", "skills", "porting"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     },
     {
       "name": "opencode-plugin-builder",
       "source": "./agents/opencode-plugin-builder.json",
       "category": "dev",
-      "version": "1.0.0",
-      "keywords": ["opencode", "plugins", "provider default", "skills", "tool bridge", "project"],
+      "version": "1.1.0",
+      "keywords": ["opencode plugin builder", "opencode", "plugins", "provider default", "skills", "tool bridge", "project"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     },
     {
       "name": "acp-plugin-builder",
       "source": "./agents/acp-plugin-builder.json",
       "category": "dev",
-      "version": "1.0.0",
-      "keywords": ["acp", "agent client protocol", "plugins", "grok", "kiro", "antigravity", "fx", "skills"],
+      "version": "1.1.0",
+      "keywords": ["acp plugin builder", "acp", "agent client protocol", "plugins", "grok", "kiro", "antigravity", "fx", "skills"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     },
     {
       "name": "botkins-skills-builder",
       "source": "./agents/botkins-skills-builder.json",
       "category": "dev",
-      "version": "1.0.0",
-      "keywords": ["skills", "skill.md", "skill builder", "skill authoring", "slash commands", "skill testing"],
+      "version": "1.1.0",
+      "keywords": ["skills builder", "skills", "skill.md", "skill builder", "skill authoring", "slash commands", "skill testing"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     }
   ]
