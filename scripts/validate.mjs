@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkAgents } from "./agents-check.mjs";
+import { checkCatalogV2 } from "./catalog-v2.mjs";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const market = JSON.parse(readFileSync(join(ROOT, ".github/plugin/marketplace.json"), "utf8"));
@@ -41,8 +42,11 @@ for (const entry of market.plugins || []) {
 const agents = checkAgents(ROOT, market.agents);
 errors.push(...agents.errors);
 
+const v2 = checkCatalogV2(ROOT, market);
+errors.push(...v2.errors);
+
 if (errors.length) {
   console.error(errors.map((e) => `- ${e}`).join("\n"));
   process.exit(1);
 }
-console.log(`OK: ${names.size} plugin(s), ${agents.names.size} agent template(s)`);
+console.log(`OK: ${names.size} plugin(s), ${agents.names.size} agent template(s), ${v2.counts.skills} skill(s), ${v2.counts.packs} pack(s), ${v2.counts.templates} v3 template(s)`);

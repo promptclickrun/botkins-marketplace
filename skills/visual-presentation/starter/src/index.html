@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every presentation is a film</title>
+<link rel="icon" href="../assets/mark.svg">
+<!-- build:fonts -->
+<style>
+  :root { color-scheme: dark; --ink: #f4efe6; --muted: #b9b2a6; --accent: #ffb35c; --bg: #07080c; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { font: 16px/1.4 system-ui, -apple-system, 'Segoe UI', sans-serif; color: var(--ink); }
+  #stage { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; cursor: none; outline: none; }
+  body:hover #stage { cursor: default; }
+
+  #loader { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); transition: opacity .6s ease; z-index: 10; }
+  #loader.gone { opacity: 0; pointer-events: none; }
+  #loader.gone.instant { transition: none; display: none; }
+  #loader .box { width: min(360px, 70vw); text-align: center; }
+  #loader img { width: 56px; height: 56px; opacity: .9; }
+  #loader .bar { height: 2px; margin-top: 22px; background: #22252d; overflow: hidden; }
+  #loader .bar i { display: block; height: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); transition: transform .15s linear; }
+  #loader p { color: var(--muted); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+  #loader.fail { place-items: start center; overflow: auto; }
+  #loader .fallback { max-width: 44rem; padding: 3rem 1.5rem; line-height: 1.6; }
+
+  .ui-overview, .ui-help { position: fixed; inset: 0; z-index: 5; background: rgba(4, 5, 8, .92); display: none; overflow: auto; }
+  .ui-overview.on, .ui-help.on { display: block; }
+  .ui-overview .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; padding: 40px; }
+  .ui-overview .cell { all: unset; cursor: pointer; display: grid; gap: 8px; color: var(--muted); font-size: 14px; }
+  .ui-overview .cell canvas { width: 100%; height: auto; border-radius: 4px; outline: 1px solid #2a2e38; }
+  .ui-overview .cell:hover canvas, .ui-overview .cell:focus-visible canvas { outline: 2px solid var(--accent); }
+  .ui-help .box { max-width: 520px; margin: 10vh auto; padding: 28px 32px; background: #12151c; border: 1px solid #2a2e38; border-radius: 10px; }
+  .ui-help th { text-align: left; padding: 4px 18px 4px 0; color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .ui-help code { color: var(--accent); }
+  .ui-notes { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; padding: 14px 22px 18px; background: linear-gradient(transparent, rgba(0,0,0,.88) 30%); display: none; font-size: 17px; }
+  .ui-notes.on { display: block; }
+  .ui-notes .pos { color: var(--muted); font-size: 13px; }
+  .ui-notes .say { font-weight: 700; font-size: 20px; }
+  .ui-notes .next { color: #8fb3ff; font-size: 14px; margin-top: 6px; }
+  .ui-hud { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); z-index: 6; padding: 6px 14px; border-radius: 99px; background: rgba(0,0,0,.6); color: var(--ink); font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; }
+  .ui-hud.on { opacity: 1; }
+  .ui-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<canvas id="stage" tabindex="0" aria-label="Presentation. Press question mark for controls."></canvas>
+<div id="loader" role="progressbar" aria-label="Preparing presentation">
+  <div class="box">
+    <img src="../assets/mark.svg" alt="">
+    <div class="bar"><i></i></div>
+    <p>Preparing</p>
+  </div>
+</div>
+<noscript><p style="padding:2rem">This presentation needs JavaScript and WebGL2.</p></noscript>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
