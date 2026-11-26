@@ -1,9 +1,10 @@
 {
   "name": "botkins",
   "displayName": "Botkins",
+  "schemaVersion": 2,
   "metadata": {
-    "description": "Plugins and agent templates curated for Botkins bots.",
-    "version": "1.4.0"
+    "description": "Plugins, skills, packs and agent templates curated for Botkins bots.",
+    "version": "2.0.0"
   },
   "owner": { "name": "Botkins", "url": "https://botkins.app" },
   "plugins": [
@@ -993,6 +994,41 @@
       "category": "dev",
       "version": "1.1.0",
       "keywords": ["skills builder", "skills", "skill.md", "skill builder", "skill authoring", "slash commands", "skill testing"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" }
+    }
+  ],
+  "skills": [
+    {
+      "name": "visual-presentation",
+      "version": "1.0.0",
+      "source": "./skills/visual-presentation",
+      "summary": "Cinematic single-file WebGL presentations: scenes and beats, shader transitions, synthesized sound, presenter controls, and a screenshot loop so the bot checks its own work.",
+      "category": "media",
+      "keywords": ["presentation", "slides", "keynote", "deck", "webgl", "shaders", "animation", "pitch", "talk", "data story"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" },
+      "license": "MIT",
+      "preview": "./skills/visual-presentation/preview.png",
+      "requires": { "tools": ["shell", "node"], "optional": ["browser"] }
+    }
+  ],
+  "packs": [
+    {
+      "name": "presentation-studio",
+      "version": "1.0.0",
+      "summary": "Skills for talks that need to land. Starts with cinematic decks; more presentation skills join as they ship.",
+      "category": "media",
+      "keywords": ["presentation", "talk", "keynote", "slides"],
+      "author": { "name": "Botkins", "url": "https://botkins.app" },
+      "skills": ["visual-presentation@^1.0.0"]
+    }
+  ],
+  "templates": [
+    {
+      "name": "deckhand",
+      "source": "./templates/deckhand.json",
+      "category": "media",
+      "version": "1.0.0",
+      "keywords": ["presentation", "keynote", "pitch", "slides", "talk", "rehearsal", "speaker notes"],
       "author": { "name": "Botkins", "url": "https://botkins.app" }
     }
   ]

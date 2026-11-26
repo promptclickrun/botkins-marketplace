@@ -1,0 +1,21 @@
+{
+  "name": "botkins-cinematic-deck-starter",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dependency-free WebGL2 cinematic deck starter for the Botkins visual-presentation skill.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "shoot": "node build.mjs && node tools/shoot.mjs",
+    "smoke": "node build.mjs && node tools/smoke.mjs",
+    "check": "node build.mjs && node tools/smoke.mjs && node tools/shoot.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  }
+}

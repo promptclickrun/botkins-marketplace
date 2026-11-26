@@ -1,6 +1,34 @@
 # Botkins Marketplace
 
-The first-party catalog of plugins and agent templates for [Botkins](https://github.com/promptclickrun/Botkins). Botkins desktop reads `.github/plugin/marketplace.json` from this repo, so merging to `main` publishes a plugin or an agent template to every desktop and paired phone within an hour. No app release is needed.
+The first-party catalog of plugins, skills, packs and agent templates for [Botkins](https://github.com/promptclickrun/Botkins). Botkins desktop reads `.github/plugin/marketplace.json` from this repo, so merging to `main` publishes a listing to every desktop and paired phone within an hour. No app release is needed.
+
+The catalog has five kinds of listing. [docs/FORMAT.md](docs/FORMAT.md) is the full specification.
+
+| Listing | What it is | Since |
+| --- | --- | --- |
+| **Plugin** | Tools, hooks and skills that connect bots to an app or service | v1 |
+| **Agent template** (`agents`) | A bot ready to be made, with optional private skills and routines | v1 |
+| **Skill** | A whole skill folder: SKILL.md plus references, scripts, starter code and assets, versioned | v2 |
+| **Pack** | A named set of catalog skills and plugins that install together | v2 |
+| **Template v3** (`templates`) | An agent template that also requires catalog skills, packs and plugins by version | v2 |
+
+## Skills
+
+| Skill | What it does | Needs |
+| --- | --- | --- |
+| [visual-presentation](skills/visual-presentation) | Cinematic single-file WebGL presentations: scenes and beats, shader transitions, synthesized sound, presenter controls, and a screenshot loop so the bot checks its own work | Shell and Node; a browser for screenshots |
+
+## Packs
+
+| Pack | Includes |
+| --- | --- |
+| presentation-studio | visual-presentation |
+
+## Templates with catalog skills
+
+| Agent | What it does | Requires |
+| --- | --- | --- |
+| [Deckhand](templates/deckhand.json) | Turns a talk idea into a cinematic presentation with a beat sheet, speaker notes and a rehearsal plan, or an editable deck when the audience needs one | visual-presentation ^1.0.0 |
 
 ## Plugins
 
@@ -181,6 +209,17 @@ Use template file version `2` and add a top-level `bundle`. Supply either array 
 
 Creating the bot gives it its own copy of each skill and routine. A second installation gets separate copies. Routines start paused. The person can review the schedule and enable a routine from Botkins. Bundles contain instructions and schedules; keep credentials, local paths, executable scripts and delivery destinations out of the bundle fields. Keep file version `1` for templates without a bundle. Hosts need support for version `2` to import a bundled template. [Example template](agents/botkins-skills-builder.json)
 
+## Add a skill
+
+1. Create `skills/<name>/` with a `SKILL.md` whose front matter has exactly `name` (the folder name) and a one-line `description` of up to 600 characters. Add whatever the skill needs beside it: `references/`, scripts, starter code, assets and an optional `preview.png`.
+2. Keep build output out of the folder: no `node_modules`, `dist` or `.env`. Add a `.gitignore`. The folder can have at most 512 files and 12 MiB, with portable paths and no symbolic links.
+3. Add an entry to `skills` in `.github/plugin/marketplace.json` with `name`, `version`, `source` (`./skills/<name>`), `summary`, `category`, `license` and, if needed, `requires.tools`.
+4. Raise `version` for any change to the folder. Installed copies are offered the update.
+
+## Add a pack or a template that requires skills
+
+A pack lists `skills` and `plugins` as `name@range` (`^1.0.0`, `~1.2.0` or `1.2.3`), and every one must be in this catalog. A template that requires catalog skills uses file format version `3`, lives in `templates/<name>.json` and has a `requires` block. Its routines can set `"active": true` to start running when the bot is created; otherwise they start paused. List it under `templates`, not `agents`: older Botkins apps read `agents` and don't understand version 3. See [docs/FORMAT.md](docs/FORMAT.md).
+
 ## Review rules for agent templates
 
 Each template becomes a bot's instructions on someone's computer, so each PR needs:
@@ -191,6 +230,13 @@ Each template becomes a bot's instructions on someone's computer, so each PR nee
 - No claim of something a bot cannot do. Name connected apps and plugins only as "if the person has them", never as given.
 - Plain, short instructions in the second person: what the bot does, how it works with the person, what it must not do.
 - A version bump in `marketplace.json` for any change.
+- A routine that starts active (`"active": true`) must be read-only and quiet when there is nothing new.
+
+## Review rules for skills
+
+- The same rules as templates for the SKILL.md and every reference file.
+- Every script a skill ships is something a bot may run on the person's computer. Read all of it. No network calls other than the ones the skill names, no writes outside the working folder, no install steps that run on their own.
+- Third-party code keeps its license file inside the folder, and the listing's `license` field must match it.
 
 ## Review rules for plugins
 
