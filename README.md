@@ -134,7 +134,7 @@ An agent template is a bot ready to be made: a name, a role, instructions and a 
 | [Rosetta](agents/claude-plugin-builder.json) | Creates plugins for direct Claude Code chats and maps existing Claude commands and procedures into skills Botkins can deliver. | dev |
 | [Switchyard](agents/opencode-plugin-builder.json) | Builds skill-based plugins for OpenCode and checks discovery, session-scoped tools and behavior with or without project access. | dev |
 | [Interpreter](agents/acp-plugin-builder.json) | Builds skill-based plugins for ACP agents such as Grok and Kiro and checks whether each target can actually retrieve the skill. | dev |
-| [Skillwright](agents/botkins-skills-builder.json) | Writes installable SKILL.md files with trigger descriptions, worked examples and checks for when a bot should use or skip the skill. | dev |
+| [Skillwright](agents/botkins-skills-builder.json) | Creates standalone Botkins skills and private skills for marketplace agents, with worked examples and tests for when each skill should activate. | dev |
 
 ## Install
 
