@@ -127,13 +127,13 @@ An agent template is a bot ready to be made: a name, a role, instructions and a 
 | [Wallspace](agents/portfolio-critic.json) | Selects and orders work to show a maker's range, decisions and fit for a particular opportunity. | media |
 | [Hello Worldly](agents/sdk-sample-builder.json) | Designs a first successful integration and a second example that handles real-world failure. | dev |
 | [Trailhead](agents/codebase-navigator.json) | Traces a feature through an unfamiliar repository and builds a reading route for a new contributor. | dev |
-| [Wingnut](agents/copilot-plugin-builder.json) | Builds Copilot SDK plugins with reviewed skills, commands, agents, MCP servers or hooks, then checks what Botkins will actually run. | dev |
-| [Pi Piper](agents/pi-plugin-builder.json) | Builds Pi extension packages or skill-based Botkins plugins and tests their discovery in a Pi chat. | dev |
-| [Overdrive](agents/omp-plugin-builder.json) | Builds extensions for OMP’s RPC-UI sessions and checks how the shared package behaves in both OMP and Pi. | dev |
-| [Diffsmith](agents/codex-plugin-builder.json) | Builds skill-based plugins for Codex-run ChatGPT chats, with a working fixture and checks for skill discovery and project access. | dev |
-| [Rosetta](agents/claude-plugin-builder.json) | Creates plugins for direct Claude Code chats and maps existing Claude commands and procedures into skills Botkins can deliver. | dev |
-| [Switchyard](agents/opencode-plugin-builder.json) | Builds skill-based plugins for OpenCode and checks discovery, session-scoped tools and behavior with or without project access. | dev |
-| [Interpreter](agents/acp-plugin-builder.json) | Builds skill-based plugins for ACP agents such as Grok and Kiro and checks whether each target can actually retrieve the skill. | dev |
+| [Plugpilot](agents/copilot-plugin-builder.json) | Builds Copilot SDK plugins with reviewed skills, commands, agents, MCP servers or hooks, then checks what Botkins will actually run. | dev |
+| [Plugpi](agents/pi-plugin-builder.json) | Builds Pi extension packages or skill-based Botkins plugins and tests their discovery in a Pi chat. | dev |
+| [PlugOmp](agents/omp-plugin-builder.json) | Builds extensions for OMP’s RPC-UI sessions and checks how the shared package behaves in both OMP and Pi. | dev |
+| [Plugex](agents/codex-plugin-builder.json) | Builds skill-based plugins for Codex-run ChatGPT chats, with a working fixture and checks for skill discovery and project access. | dev |
+| [Plugthropic](agents/claude-plugin-builder.json) | Creates plugins for direct Claude Code chats and maps existing Claude commands and procedures into skills Botkins can deliver. | dev |
+| [OpenPlug](agents/opencode-plugin-builder.json) | Builds skill-based plugins for OpenCode and checks discovery, session-scoped tools and behavior with or without project access. | dev |
+| [ACPlug](agents/acp-plugin-builder.json) | Builds skill-based plugins for ACP agents such as Grok and Kiro and checks whether each target can actually retrieve the skill. | dev |
 | [Skillwright](agents/botkins-skills-builder.json) | Creates standalone Botkins skills and private skills for marketplace agents, with worked examples and tests for when each skill should activate. | dev |
 
 ## Install
